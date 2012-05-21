@@ -1,0 +1,43 @@
+application: bseu-api
+version: 1
+runtime: python27
+threadsafe: false
+api_version: 1
+
+handlers:
+- url: /favicon\.ico
+  static_files: favicon.ico
+  upload: favicon\.ico
+
+- url: /css
+  static_dir: css
+
+- url: /scripts
+  static_dir: scripts
+
+- url: /images
+  static_dir: images
+
+- url: /auth
+  script: auth.py
+
+- url: /calendar_auth
+  script: auth.py
+
+- url: /importer
+  script: gcal.py
+  
+- url: /batchfetcher
+  script: gcal.py
+  login: admin
+
+- url: /batchinserter
+  script: gcal.py
+  login: admin  
+
+- url: .*
+  script: main.py
+
+libraries:
+- name: lxml
+  version: latest

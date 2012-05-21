@@ -1,0 +1,16 @@
+cron:
+- description: weekly fetch
+  url: /batchfetcher
+  schedule: every sunday 10:30
+  timezone: Europe/Minsk
+  target: weekly
+  
+- description: weekly import
+  url: /batchinserter
+  schedule: every sunday 10:50
+  timezone: Europe/Minsk
+  target: weekly
+
+- description: daily session cleanup
+  url: /cleanup_sessions
+  schedule: every 24 hours

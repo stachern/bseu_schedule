@@ -1,0 +1,6 @@
+backends:
+- name: weekly
+  class: B1
+  instances: 1
+  options: dynamic, public
+  start: gcal.py

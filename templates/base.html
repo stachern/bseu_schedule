@@ -1,0 +1,61 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+
+    <title>
+        {% block title %}BSEU Scheduler+{% endblock %}
+    </title>
+
+    <!-- Meta Tags -->
+    <meta http-equiv="content-type" content="text/html;charset=utf-8"/>
+    <meta name="title" content="BSEU Calendar tool"/>
+    <meta name="keywords" content="БГЭУ, Нархоз, расписание, календарь, импорт, автоматически, google"/>
+    <meta name="description" content="Импорт расписания БГЭУ в google calendar."/>
+
+    <!-- CSS -->
+    <link href="/css/structure.css" rel="stylesheet">
+    <link href="/css/form.css" rel="stylesheet">
+    {% block styles %}{% endblock %}
+    <!-- JavaScript -->
+    <script src="/scripts/wufoo.js"></script>
+    <script src="/scripts/form.js"></script>
+    <script src='http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js'></script>
+    {% block scripts %}{% endblock %}
+    <!--[if lt IE 10]>
+    <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <script type="text/javascript">
+
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-22509903-2']);
+        _gaq.push(['_setDomainName', 'inside.by']);
+        _gaq.push(['_trackPageview']);
+
+        (function () {
+            var ga = document.createElement('script');
+            ga.type = 'text/javascript';
+            ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(ga, s);
+        })();
+
+    </script>
+</head>
+
+<body id="public">
+<div id="container" class="ltr">
+    <h1 id="logo">
+        <a href="http://app.inside.by" title="power inside!">app.inside.by</a>
+    </h1>
+    {% block content %}{% endblock %}
+</div>
+<!--container-->
+{% block qrcode %}{% endblock %}
+<script type="text/javascript" src="//yandex.st/share/share.js" charset="utf-8"></script>
+<div class="yashare-auto-init" data-yashareL10n="ru" data-yashareType="none"
+     data-yashareQuickServices="vkontakte,facebook,twitter,gplus"></div>
+
+</body>
+</html>
