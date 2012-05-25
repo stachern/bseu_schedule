@@ -116,7 +116,7 @@ class main_page(webapp.RequestHandler):
             if user_settings.calendar and not self.session.has_key('calendars'):
                 self.context['calendar']={'saved':{'name':user_settings.calendar}}
                 if self.session.has_key('import'):
-                    self.context['calendar']['import']=True
+                    self.context['calendar']['imported']=True
                     del self.session['import']
 
         if self.session.has_key('calendars'):
