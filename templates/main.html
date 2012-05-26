@@ -57,10 +57,11 @@
                         <b>{{ calendar.saved.name }}</b> (<a href='/auth'>изменить</a>)<br><br>
                     </li>
                     <li id="calendarimporter" class="notranslate rightHalf      ">
-                        <h3>Вкачать!</h3>
-                        <button id="importForm" name="importForm" class="btTxt submit" type="button" value="Импорт!" onclick="importcal(this);">Импорт</button>
+                        <h3>Ручной импорт:</h3>
                         {% if calendar.imported %}
                             <p>Импорт успешен!</p>
+                        {% else %}
+                            <button id="importForm" name="importForm" class="btTxt submit" type="button" value="Импорт!" onclick="importcal(this);">Импорт</button>
                         {% endif %}
                     </li>
                 {% endif %}
