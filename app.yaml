@@ -1,5 +1,5 @@
 application: bseu-api
-version: 1
+version: 2semfix
 runtime: python27
 threadsafe: false
 api_version: 1
