@@ -24,7 +24,6 @@ def read(htmltext):
     """
     parses html an return a well formed list of dicts
     """
-    global curweek
     startsem = datetime.strptime('2012-08-26','%Y-%m-%d')
     weekdaysD = {u'понедельник': 1, u'вторник': 2, u'среда': 3, u'четверг': 4, u'пятница': 5, u'суббота': 6}
     sched = []

@@ -11,9 +11,10 @@
 {% endblock %}
 
 {% block content %}
-<form id="calendartool" name="calendartool" class="wufoo  page" autocomplete="off" enctype="multipart/form-data" method="post"
-      novalidate
-      action="">
+    <form id="calendartool" name="calendartool" class="wufoo  page" autocomplete="off" enctype="multipart/form-data"
+          method="post"
+          novalidate
+          action="">
 
     {% include "base_header.html" %}
 
@@ -28,7 +29,8 @@
         </li>
         <li id="permalink" class="notranslate rightHalf      ">
             {% if permalink %}
-            <h3>Постоянная ссылка</h3><a href="/scheduleapi?action=view&{{ permalink }}">На неделю</a> | <a href="/scheduleapi?action=view&period=3&{{ permalink }}">На семестр</a>
+                <h3>Постоянная ссылка</h3><a href="/scheduleapi?action=view&{{ permalink }}">На неделю</a> | <a
+                    href="/scheduleapi?action=view&period=3&{{ permalink }}">На семестр</a>
             {% endif %}
         </li>
 
@@ -40,15 +42,19 @@
                         Импорт в
                         <span id="calendarpicker_req" class="req">*</span>
                     </label>
+
                     <div>
-                        <select id="calendar" name="calendar" class="field select medium" tabindex="1" onchange="$('select#faculty').removeAttr('disabled');">
+                        <select id="calendar" name="calendar" class="field select medium" tabindex="1"
+                                onchange="$('select#faculty').removeAttr('disabled');">
                             <option value="-1" selected="selected">Выберите</option>
                             {% for cal in calendar.picker %}
                                 <option value="{{ cal.id }}">{{ cal.title }}</option>
                             {% endfor %}
                         </select>
                     </div>
-                    <p class="instruct" id="instruct4"><small>Начните здесь</small></p>
+                    <p class="instruct" id="instruct4">
+                        <small>Начните здесь</small>
+                    </p>
                 </li>
             {% else %}
                 {% if calendar.saved %}
@@ -61,18 +67,48 @@
                         {% if calendar.imported %}
                             <p>Импорт успешен!</p>
                         {% else %}
-                            <button id="importForm" name="importForm" class="btTxt submit" type="button" value="Импорт!" onclick="importcal(this);">Импорт</button>
+                            <button id="importForm" name="importForm" class="btTxt submit" type="button"
+                                    value="Импорт!" onclick="importcal(this);">Импорт
+                            </button>
                         {% endif %}
                     </li>
                 {% endif %}
-             {% endif %}
+            {% endif %}
+            <li id="mode_label" class="notranslate      ">
+                <fieldset>
+                    <![if !IE | (gte IE 8)]>
+                    <legend id="mode" class="desc">
+                        Автоматический импорт каждое воскресенье?</br>
+                        <small>Календарь должен быть выбран!</small>
+                    </legend>
+                    <![endif]>
+                    <!--[if lt IE 8]>
+                <label id="title3" class="desc">
+                    Автоматический импорт каждое воскресенье?</br>
+                    <small>Календарь должен быть выбран!</small>
+                </label>
+                <![endif]-->
+                    <div>
+                <span>
+                <input id="mode0" name="mode" type="radio" class="field radio" value="1" tabindex="8" {% if auto_import %}checked="checked"{% endif %}/>
+                <label class="choice" for="mode0">
+                    Да, импортировать автоматически</label>
+                </span>
+                <span>
+                <input id="mode1" name="mode" type="radio" class="field radio" value="0" tabindex="9" {% if not auto_import %}checked="checked"{% endif %}/>
+                <label class="choice" for="mode1">
+                    Нет, оставить ручной импорт</label>
+                </span>
+                    </div>
+                </fieldset>
+            </li>
         {% else %}
             {% if account.username %}
                 <li id="calendar" class="notranslate leftHalf      ">
                     <h3>Доступ к календарю</h3>
                     <a href='/auth'>выбрать календарь</a>
                 </li>
-             {% endif %}
+            {% endif %}
         {% endif %}
 
         <li id="faculty_label" class="notranslate leftHalf      ">
@@ -82,7 +118,8 @@
             </label>
 
             <div>
-                <select id="faculty" name="faculty" class="field select medium" tabindex="4" onchange='getval(this);'>
+                <select id="faculty" name="faculty" class="field select medium" tabindex="4"
+                        onchange='getval(this);'>
                     <option value="" selected="selected">
                     </option>
                     <option value="450">Аспир.</option>
@@ -144,34 +181,7 @@
         </li>
 
 
-        <li id="mode_label" class="notranslate      ">
-            <fieldset>
-                <![if !IE | (gte IE 8)]>
-                <legend id="mode" class="desc">
-                    Автоматический импорт каждое воскресенье?</br>
-                    <small>Календарь должен быть выбран!</small>
-                </legend>
-                <![endif]>
-                <!--[if lt IE 8]>
-                <label id="title3" class="desc">
-                    Автоматический импорт каждое воскресенье?</br>
-                    <small>Календарь должен быть выбран!</small>
-                </label>
-                <![endif]-->
-                <div>
-<span>
-<input id="mode0" name="mode" type="radio" class="field radio" value="1" tabindex="8"/>
-<label class="choice" for="mode0">
-    Да, импортировать автоматически</label>
-</span>
-<span>
-<input id="mode1" name="mode" type="radio" class="field radio" value="0" tabindex="9"/>
-<label class="choice" for="mode1">
-    Нет, оставить ручной импорт</label>
-</span>
-                </div>
-            </fieldset>
-        </li>
+
 
         <li id="comment_label"
             class="notranslate      "><label class="desc" id="title1" for="comment">
@@ -195,7 +205,8 @@
         </li>
         <li class="notranslate">
             <button id="saveForm" name="saveForm" class="btTxt submit" type="button" value="save"
-                    onclick="submitform(this);">Сохранить
+                    onclick="submitform(this);">
+                {% if permalink %}Изменить{% else %}Сохранить{% endif %}
             </button>
             <b id='saveme' style="color:red; display:none;">
                 <small>Присутствуют несохраненные изменения!</small>
@@ -203,5 +214,5 @@
         </li>
 
     </ul>
-</form>
+    </form>
 {% endblock %}

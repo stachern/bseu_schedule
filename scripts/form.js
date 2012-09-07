@@ -38,13 +38,17 @@ function getPermalink(that){
     $('li#permalink').html('').append('<h3>Постоянная ссылка</h3>').append('<a href="/scheduleapi?action=view&faculty='+$('select#faculty').val()+'&group='+$('select#group').val()+'&course='+$('select#course').val()+'&form='+$('select#form').val()+'">На неделю</a>').append(' | <a href="/scheduleapi?action=view&period=3&faculty='+$('select#faculty').val()+'&group='+$('select#group').val()+'&course='+$('select#course').val()+'&form='+$('select#form').val()+'">На семестр</a>').show();
     }
 function submitform(that){
-    if($('select#group').val() && $('select#calendar').val()!="-1"){
+    if(($('select#group').val() || $('li#permalink').is('li')) && $('select#calendar').val()!="-1"){
         var fdata=$('form#calendartool').serialize();
         fdata=fdata+'&calendar_name='+$('select#calendar option:selected').text();
-        $.post("/", fdata , function(){
-            alert('Сохранено. Для изменения - просто перезаполните форму');
-            window.location.href='http://app.inside.by/';
-        });
+        if($('select#calendar').val()==-1){
+            alert('Вы должны выбрать календарь!')
+        }else{
+            $.post("/", fdata , function(){
+                alert('Сохранено. Для изменения - просто перезаполните форму');
+                window.location.href='/';
+            });
+        }
     }else{
         alert('Вы должны выбрать все обязательные пункты!')
         }

@@ -55,7 +55,7 @@ class apihandler(webapp.RequestHandler):
             else:
                 data[field] = self.request.get(field)
         data['__act'] = self.request.get('__act', '__id.25.main.inpFldsA.GetSchedule__sp.7.results__fp.4.main')
-        data['period'] = self.request.get('period', 2)
+        data['period'] = self.request.get('period', settings.PERIOD)
         self.data = data
         self.get_schedule_week(self.data, self.action)
 
@@ -80,11 +80,11 @@ class main_page(webapp.RequestHandler):
     def post(self):
         existent = Student.all().filter("student =", users.get_current_user()).get()
         if not existent is None:
-            existent.group = int(self.request.get('group'))
-            existent.form = int(self.request.get('form'))
-            existent.auto = bool(self.request.get('mode'))
-            existent.faculty = int(self.request.get('faculty'))
-            existent.course = int(self.request.get('course'))
+            if self.request.get('group'): existent.group = int(self.request.get('group'))
+            if self.request.get('form'): existent.form = int(self.request.get('form'))
+            existent.auto = bool(int(self.request.get('mode')))
+            if self.request.get('faculty'): existent.faculty = int(self.request.get('faculty'))
+            if self.request.get('course'): existent.course = int(self.request.get('course'))
             existent.lastrun = datetime.datetime.now()
             curcalname = self.request.get('calendar_name', False)
             curcalid = self.request.get('calendar', False)
@@ -118,6 +118,7 @@ class main_page(webapp.RequestHandler):
                 if self.session.has_key('import'):
                     self.context['calendar']['imported']=True
                     del self.session['import']
+                self.context['auto_import']=user_settings.auto
 
         if self.session.has_key('calendars'):
             self.context['calendar'] = {'picker':self.session['calendars']}

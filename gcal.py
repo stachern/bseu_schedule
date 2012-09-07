@@ -6,7 +6,7 @@ from google.appengine.ext import webapp, db
 from google.appengine.ext.webapp.util import run_wsgi_app, login_required
 from google.appengine.api import urlfetch, users
 from models import Student, Event
-from settings import BSEUURL, HEADERS, API_APP
+from settings import BSEUURL, HEADERS, API_APP, PERIOD
 from datetime import timedelta, time
 import gdata.gauth
 import gdata.calendar.data
@@ -62,7 +62,7 @@ def eventimport(who):
 def fetch(who):
     data = {
     '__act' : '__id.25.main.inpFldsA.GetSchedule__sp.7.results__fp.4.main',
-    'period' : 2,
+    'period' : PERIOD,
     'faculty' : who.faculty,
     'group' : who.group,
     'course' : who.course,
@@ -106,6 +106,7 @@ class BatchFetcher(webapp.RequestHandler):
         results = Student.all().filter("auto =", True).order("-lastrun").fetch(limit=1000)
         for stud in results:
             if stud.calendar:
+                logging.info('fetching for %s' % stud.student.email())
                 fetch(stud)
         self.response.out.write('success')
 
@@ -117,7 +118,7 @@ class BatchInserter(webapp.RequestHandler):
         for stud in results:
             if stud.calendar:
                 eventimport(stud)
-                mailer.send( recipient=stud.student.email(), params={'user':stud.student,'week': 15 })
+                mailer.send( recipient=stud.student.email(), params={'user':stud.student})
         self.response.out.write('success')
 
 def main():

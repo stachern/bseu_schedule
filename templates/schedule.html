@@ -6,5 +6,6 @@
     {{ schedule|safe }}
 {% endblock %}
 {% block qrcode %}
-    <div style="text-align: center;"><p>Ваше расписание:</p><img src="http://qrcode.kaywa.com/img.php?s=3&d={{ uri|urlencode }}" alt="qrcode" /></div>
+    <div style="text-align: center;"><p>Ваше расписание:</p><img
+            src="http://qrcode.kaywa.com/img.php?s=3&d={{ uri|urlencode }}" alt="qrcode"/></div>
 {% endblock %}
