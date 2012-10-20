@@ -27,8 +27,8 @@ function getval(that){
 function parser(data, item){
     $(item).html('');
     $(item).append('<option value="" selected="selected">Загрузка..</option>');
-    $($.parseXML(data)).find('DATAPACKET ROWDATA ROW').each(function(i){
-        $(item).append('<option value="'+$(this).attr('value')+'">'+$(this).attr('text')+'</option>');
+    $($.parseJSON(data)).each(function(i){
+        $(item).append('<option value="'+this.value+'">'+this.text+'</option>');
         });
     $(item).attr('onchange', 'getval(this);');
     $(item).find('option[selected="selected"]').html('Выберите')
