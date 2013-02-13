@@ -26,7 +26,7 @@ class Student(db.Model):
 
     @property
     def id(self):
-        return self.key().name()
+        return str(self.key())
 
     def __repr__(self):
         return self.student.name
@@ -41,7 +41,7 @@ class PermanentLinks(db.Model):
 
     @property
     def id(self):
-        return self.key().name()
+        return str(self.key())
 
     def __repr__(self):
         return "Link: course=%s, form=%s" % (self.course, self.form)

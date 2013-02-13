@@ -78,7 +78,7 @@ class MainPage(RequestHandler):
             self.context['account'] = {'username': self.user.nickname(), 'logout_url': users.create_logout_url("/")}
         else:
             self.context['account'] = {'login_url': users.create_login_url("/")}
-        self.check_settings()
+        self.get_context()
         self.response.out.write(
             template.render(os.path.join(os.path.dirname(__file__), 'templates/main.html'), self.context))
 
@@ -115,7 +115,7 @@ class MainPage(RequestHandler):
         self.send_comment(self.request.get('comment'))
         user_profile.put()
 
-    def check_settings(self):
+    def get_context(self):
 
         user_settings = Student.all().filter("student =", users.get_current_user()).order("-lastrun").get()
 
