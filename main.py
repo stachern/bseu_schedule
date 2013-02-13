@@ -12,7 +12,7 @@ import logging
 
 from google.appengine.ext.webapp import template
 from google.appengine.api import urlfetch, users
-import webapp2
+from handler import RequestHandler
 
 from gaesessions import get_current_session
 from models import Student, Event, add_permalink_and_get_key
@@ -21,7 +21,7 @@ import settings
 import mailer
 
 
-class ScheduleApi(webapp2.RequestHandler):
+class ScheduleApi(RequestHandler):
     def get_schedule_week(self, message, action):
         result = urlfetch.fetch(url=settings.BSEU_SHEDULE_URL,
                                 payload=urllib.urlencode(message),
@@ -64,7 +64,7 @@ class ScheduleApi(webapp2.RequestHandler):
         self.get_schedule_week(data, self.action)
 
 
-class MainPage(webapp2.RequestHandler):
+class MainPage(RequestHandler):
     """
     UI. let user authenticate log in params and sets task. also shows results
     """
@@ -145,7 +145,7 @@ class MainPage(webapp2.RequestHandler):
                         message=comm)
 
 
-class proxy(webapp2.RequestHandler):
+class proxy(RequestHandler):
     def _fake(self):
         self.head = settings.HEADERS
         self.cookie = Cookie.SimpleCookie()
@@ -173,13 +173,6 @@ class proxy(webapp2.RequestHandler):
         return self.head
 
 
-class HelpPage(webapp2.RequestHandler):
+class HelpPage(RequestHandler):
     def get(self):
         self.response.out.write(template.render(os.path.join(os.path.dirname(__file__), 'templates/help.html'), {}))
-
-
-app = webapp2.WSGIApplication([('/scheduleapi', ScheduleApi),
-                                          ('/', MainPage),
-                                          ('/help', HelpPage),
-                                          ('/proxy', proxy)],
-                                         debug=False)

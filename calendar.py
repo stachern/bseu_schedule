@@ -6,10 +6,10 @@ import urllib
 import logging
 
 from google.appengine.ext import db
-from google.appengine.ext.webapp.util import login_required
 from google.appengine.api import urlfetch, users
-import webapp2
+from webapp2_extras.appengine.users import login_required
 
+from handler import RequestHandler
 from gaesessions import get_current_session
 from models import Student, Event
 from settings import BSEU_SHEDULE_URL, HEADERS, API_APP, BSEU_DEFAULT_PERIOD, ACTION_ID
@@ -94,7 +94,7 @@ def fetch(student):
             new_schedule.put()
 
 
-class Importer(webapp2.RequestHandler):
+class ImportHandler(RequestHandler):
     @login_required
     def get(self):
         user_settings = Student.all().filter("student =", users.get_current_user()).order("-lastrun").get()
@@ -104,7 +104,7 @@ class Importer(webapp2.RequestHandler):
         self.redirect('/')
 
 
-class BatchFetcher(webapp2.RequestHandler):
+class BatchFetcher(RequestHandler):
     def get(self):
         logging.info('starting batch fetch job')
         results = Student.all().filter("auto =", True).order("-lastrun").fetch(limit=1000)
@@ -115,7 +115,7 @@ class BatchFetcher(webapp2.RequestHandler):
         self.response.out.write('success')
 
 
-class BatchInserter(webapp2.RequestHandler):
+class BatchInserter(RequestHandler):
     def get(self):
         logging.info('starting batch insert job')
         results = Student.all().filter("auto =", True).order("-lastrun").fetch(limit=1000)
@@ -126,10 +126,5 @@ class BatchInserter(webapp2.RequestHandler):
         self.response.out.write('success')
 
 
-
-app = webapp2.WSGIApplication([('/importer', Importer),
-                               ('/fetch_schedules', BatchFetcher),
-                               ('/create_events', BatchInserter)],
-                               debug=False)
 
 

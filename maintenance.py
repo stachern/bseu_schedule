@@ -1,5 +1,5 @@
 import logging
-import webapp2
+from handler import RequestHandler
 from models import Student, PermanentLinks
 
 
@@ -22,10 +22,9 @@ def increment_course_and_cleanup_graduates():
         _increment_or_delete(link)
 
 
-class MaintenanceTask(webapp2.RequestHandler):
+class MaintenanceTask(RequestHandler):
     def get(self):
         increment_course_and_cleanup_graduates()
 
 
-app = webapp2.WSGIApplication([('/maintenance', MaintenanceTask)], debug=True)
 

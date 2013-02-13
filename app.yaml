@@ -27,32 +27,12 @@ handlers:
 - url: /images
   static_dir: images
 
-- url: /auth
-  script: auth.app
-
-- url: /calendar_auth
-  script: auth.app
-
-- url: /link/.*
-  script: resolver.app
-
-- url: /importer
-  script: calendar.app
-  
-- url: /fetch_schedules
-  script: calendar.app
-  login: admin
-
-- url: /create_events
-  script: calendar.app
-  login: admin
-
-- url: /maintenance
-  script: maintenance.app
+- url: /task/.*
+  script: dispatch.tasks_app
   login: admin
 
 - url: .*
-  script: main.app
+  script: dispatch.site_app
 
 libraries:
 - name: lxml
