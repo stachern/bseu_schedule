@@ -16,7 +16,7 @@ from handler import RequestHandler
 
 from gaesessions import get_current_session
 from models import Student, Event, add_permalink_and_get_key
-import parser
+import schedule_parser
 import settings
 import mailer
 
@@ -31,11 +31,11 @@ class ScheduleApi(RequestHandler):
             if action == 'view':
                 self.response.out.write(template.render(os.path.join(os.path.dirname(__file__),
                                                                      'templates/schedule.html'),
-                                                        {'schedule': parser.show(result.content),
+                                                        {'schedule': schedule_parser.show(result.content),
                                                          'uri': self.request.url}))
             elif action == 'save':
                 try:
-                    parsed_list = parser.read(result.content)
+                    parsed_list = schedule_parser.read(result.content)
                 except Exception, e:
                     logging.debug(e)
                     return "error: %s" % e

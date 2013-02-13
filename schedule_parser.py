@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 import leaf
 
 WEEKDAYS = {u'понедельник': 1, u'вторник': 2, u'среда': 3, u'четверг': 4, u'пятница': 5, u'суббота': 6}
-
+MAIN_TABLE_PATTERN = re.compile(r'<table\b.*?>.*?</table>', re.DOTALL)
 
 def get_semester_start_date():
     return datetime.strptime('2013-02-03', '%Y-%m-%d')
@@ -17,9 +17,9 @@ def show(raw_html_schedule):
     """
     cut table with schedule out of the html
     """
-    patt = re.compile(r'<table\b.*?>.*?</table>', re.DOTALL)
+
     try:
-        return patt.findall(raw_html_schedule.decode('cp1251'))[0]
+        return MAIN_TABLE_PATTERN.findall(raw_html_schedule.decode('cp1251'))[0]
     except IndexError:
         return '<h1><center>Нет доступного расписания</center></h1>'
 

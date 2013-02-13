@@ -1,6 +1,6 @@
 import webapp2
 from auth import Auth, RequestTokenCallback
-from calendar import ImportHandler, BatchInserter, BatchFetcher
+from events_calendar import ImportHandler, BatchInserter, BatchFetcher
 from main import ScheduleApi, MainPage, HelpPage, proxy
 from maintenance import MaintenanceTask
 from resolver import ResolveLink

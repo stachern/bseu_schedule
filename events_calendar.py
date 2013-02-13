@@ -17,7 +17,7 @@ import gdata.gauth
 import gdata.calendar.data
 import gdata.calendar.client
 import atom.data
-import parser
+import schedule_parser
 import mailer
 
 
@@ -80,7 +80,7 @@ def fetch(student):
                             method=urlfetch.POST,
                             headers=HEADERS)
     try:
-        parsed_list = parser.read(result.content)
+        parsed_list = schedule_parser.read(result.content)
     except Exception, e:
         logging.error(e)
     else:
@@ -124,7 +124,3 @@ class BatchInserter(RequestHandler):
                 create_calendar_events(stud)
                 mailer.send(recipient=stud.student.email(), params={'user': stud.student})
         self.response.out.write('success')
-
-
-
-

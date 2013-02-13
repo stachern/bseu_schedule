@@ -1,7 +1,7 @@
 application: bseu-api
 version: 2-0
 runtime: python27
-threadsafe: false
+threadsafe: true
 api_version: 1
 
 handlers:
@@ -37,9 +37,6 @@ handlers:
 libraries:
 - name: lxml
   version: latest
-
-- name: webapp2
-  version: "2.5.1"
 
 builtins:
 - appstats: on
