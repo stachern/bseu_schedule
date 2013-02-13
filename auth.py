@@ -1,18 +1,21 @@
-from gaesessions import get_current_session
-from google.appengine.ext import webapp
-from google.appengine.ext.webapp.util import run_wsgi_app, login_required
+import logging
+
+from google.appengine.ext.webapp.util import login_required
 from google.appengine.api import users
+import webapp2
+
+from gaesessions import get_current_session
 from settings import API_APP
 import gdata.gauth
 import gdata.calendar.data
 import gdata.calendar.client
-import logging
+
 
 logging.getLogger().setLevel(logging.DEBUG)
 gcal = gdata.calendar.client.CalendarClient(source=API_APP['APP_NAME'])
 
 
-class Auth(webapp.RequestHandler):
+class Auth(webapp2.RequestHandler):
     @login_required
     def get(self):
         """This handler is responsible for fetching an initial OAuth
@@ -35,7 +38,7 @@ class Auth(webapp.RequestHandler):
             '<html><script type="text/javascript">window.location = "%s"</script></html>' % approval_page_url)
 
 
-class RequestTokenCallback(webapp.RequestHandler):
+class RequestTokenCallback(webapp2.RequestHandler):
 
     @login_required
     def get(self):
@@ -67,13 +70,6 @@ class RequestTokenCallback(webapp.RequestHandler):
             self.redirect('/')
 
 
-def main():
-    application = webapp.WSGIApplication([('/auth', Auth),
-                                         ('/calendar_auth', RequestTokenCallback)],
-                                         debug=True)
-
-    run_wsgi_app(application)
-
-if __name__ == '__main__':
-    main()
-
+app = webapp2.WSGIApplication([('/auth', Auth),
+                              ('/calendar_auth', RequestTokenCallback)],
+                              debug=True)

@@ -1,22 +1,28 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from gaesessions import get_current_session
-from google.appengine.ext import webapp, db
-from google.appengine.ext.webapp.util import run_wsgi_app, login_required
-from google.appengine.api import urlfetch, users
-from models import Student, Event
-from settings import BSEUURL, HEADERS, API_APP, PERIOD
 from datetime import timedelta, time
+import urllib
+import logging
+
+from google.appengine.ext import db
+from google.appengine.ext.webapp.util import login_required
+from google.appengine.api import urlfetch, users
+import webapp2
+
+from gaesessions import get_current_session
+from models import Student, Event
+from settings import BSEU_SHEDULE_URL, HEADERS, API_APP, BSEU_DEFAULT_PERIOD, ACTION_ID
 import gdata.gauth
 import gdata.calendar.data
 import gdata.calendar.client
 import atom.data
-import scheduleparser, mailer, urllib, logging
+import parser
+import mailer
 
 
-logging.getLogger().setLevel(logging.DEBUG)
-gcal = gdata.calendar.client.CalendarClient(source=API_APP['APP_NAME'])
+gcal_client = gdata.calendar.client.CalendarClient(source=API_APP['APP_NAME'])
+
 
 def InsertSingleEvent(calendar_client, title='bseu-api event',
                       content='study hard', where='in space',
@@ -42,65 +48,63 @@ def InsertSingleEvent(calendar_client, title='bseu-api event',
         else:
             calendar_client.InsertEvent(event, ucalendar)
     except Exception, e:
-        logging.error('import was unsuccessfull - skipping: %s'  % e)
+        logging.error('import was unsuccessful - skipping: %s' % e)
     else:
-        logging.debug('import was successfull: %s-%s' % (title, content))
+        logging.debug('import was successful: %s-%s' % (title, content))
 
 
-def eventimport(who):
+def create_calendar_events(who):
     access_token_key = 'access_token_%s' % who.student.user_id()
-    gcal.auth_token = gdata.gauth.ae_load(access_token_key)
+    gcal_client.auth_token = gdata.gauth.ae_load(access_token_key)
     results = Event.all().filter("creator =", who.student).order("starttime").fetch(limit=30)
     batch = []
     for event in results:
-        InsertSingleEvent(gcal, event.title, event.description, event.location, event.starttime, event.endtime,
-            who.calendar_id)
+        InsertSingleEvent(gcal_client, event.title, event.description, event.location, event.starttime, event.endtime,
+                          who.calendar_id)
         batch.append(event)
     db.delete(batch)
 
 
-def fetch(who):
+def fetch(student):
     data = {
-    '__act' : '__id.25.main.inpFldsA.GetSchedule__sp.7.results__fp.4.main',
-    'period' : PERIOD,
-    'faculty' : who.faculty,
-    'group' : who.group,
-    'course' : who.course,
-    'form' : who.form
+        '__act': ACTION_ID,
+        'period': BSEU_DEFAULT_PERIOD,
+        'faculty': student.faculty,
+        'group': student.group,
+        'course': student.course,
+        'form': student.form
     }
 
-    data = urllib.urlencode(data)
-    result = urlfetch.fetch(url=BSEUURL,
-        payload=data,
-        method=urlfetch.POST,
-        headers=HEADERS)
+    result = urlfetch.fetch(url=BSEU_SHEDULE_URL,
+                            payload=urllib.urlencode(data),
+                            method=urlfetch.POST,
+                            headers=HEADERS)
     try:
-        parsedlist = scheduleparser.read(result.content)
+        parsed_list = parser.read(result.content)
     except Exception, e:
         logging.error(e)
     else:
-        for parsed in parsedlist:
-            new_sched = Event(title=parsed['subject'],
-                description=parsed['description'],
-                location=parsed['location'],
-                starttime=parsed['date']['start'],
-                endtime=parsed['date']['end'],
-                creator=who.student)
-            new_sched.put()
+        for parsed in parsed_list:
+            new_schedule = Event(title=parsed['subject'],
+                                 description=parsed['description'],
+                                 location=parsed['location'],
+                                 starttime=parsed['date']['start'],
+                                 endtime=parsed['date']['end'],
+                                 creator=student.student)
+            new_schedule.put()
 
 
-
-
-class Importer(webapp.RequestHandler):
+class Importer(webapp2.RequestHandler):
     @login_required
     def get(self):
         user_settings = Student.all().filter("student =", users.get_current_user()).order("-lastrun").get()
-        eventimport(user_settings)
-        self.session=get_current_session()
-        self.session['import']=True
+        create_calendar_events(user_settings)
+        self.session = get_current_session()
+        self.session['import'] = True
         self.redirect('/')
 
-class BatchFetcher(webapp.RequestHandler):
+
+class BatchFetcher(webapp2.RequestHandler):
     def get(self):
         logging.info('starting batch fetch job')
         results = Student.all().filter("auto =", True).order("-lastrun").fetch(limit=1000)
@@ -111,25 +115,21 @@ class BatchFetcher(webapp.RequestHandler):
         self.response.out.write('success')
 
 
-class BatchInserter(webapp.RequestHandler):
+class BatchInserter(webapp2.RequestHandler):
     def get(self):
         logging.info('starting batch insert job')
         results = Student.all().filter("auto =", True).order("-lastrun").fetch(limit=1000)
         for stud in results:
             if stud.calendar:
-                eventimport(stud)
-                mailer.send( recipient=stud.student.email(), params={'user':stud.student})
+                create_calendar_events(stud)
+                mailer.send(recipient=stud.student.email(), params={'user': stud.student})
         self.response.out.write('success')
 
-def main():
-    application = webapp.WSGIApplication([
-        ('/importer', Importer),
-        ('/batchfetcher', BatchFetcher),
-        ('/batchinserter', BatchInserter)],
-        debug=False)
 
-    run_wsgi_app(application)
 
-if __name__ == '__main__':
-    main()
+app = webapp2.WSGIApplication([('/importer', Importer),
+                               ('/fetch_schedules', BatchFetcher),
+                               ('/create_events', BatchInserter)],
+                               debug=False)
+
 

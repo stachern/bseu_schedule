@@ -1,5 +1,6 @@
 from google.appengine.ext import db
 
+
 class Event(db.Model):
     """
     temporary storage
@@ -22,3 +23,35 @@ class Student(db.Model):
     student = db.UserProperty(required=True)
     calendar = db.TextProperty()
     calendar_id = db.TextProperty()
+
+    @property
+    def id(self):
+        return self.key().name()
+
+    def __repr__(self):
+        return self.student.name
+
+
+class PermanentLinks(db.Model):
+
+    group = db.IntegerProperty()
+    faculty = db.IntegerProperty()
+    form = db.IntegerProperty()
+    course = db.IntegerProperty()
+
+    @property
+    def id(self):
+        return self.key().name()
+
+    def __repr__(self):
+        return "Link: course=%s, form=%s" % (self.course, self.form)
+
+
+def add_permalink_and_get_key(group, faculty, form, course):
+    exists = PermanentLinks.all().filter("group =", group).filter("faculty =", faculty).filter("form =", form).filter("course = ", course).get()
+    if exists:
+        return exists.id
+    else:
+        link = PermanentLinks(group=group, faculty=faculty, form=form, course=course)
+        link.put()
+        return link.id

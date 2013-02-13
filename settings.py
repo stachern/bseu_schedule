@@ -3,18 +3,25 @@
 
 import os
 
+APP_URL = 'http://app.inside.by/'
+
 HEADERS = {'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; rv:11.0) Gecko/20100101 Firefox/11.0'}
 
-BSEUURL = 'http://bseu.by/schedule/'
+BSEU_SHEDULE_URL = 'http://bseu.by/schedule/'
 
-ARGS = 'faculty=%s&group=%s&course=%s&form=%s'
+#week
+BSEU_DEFAULT_PERIOD = 2
 
-LINKS = '<h3>Постоянная ссылка</h3><a href="/scheduleapi?action=view&%s">На неделю</a> | <a href="/scheduleapi?action=view&period=3&%s">На семестр</a>'
+ACTION_ID = '__id.25.main.inpFldsA.GetSchedule__sp.7.results__fp.4.main'
 
-subject = "New comment for Scheduler+"
+SCHEDULE_VIEW_ARGS = 'faculty=%s&group=%s&course=%s&form=%s'
 
-to = "Stanislau Charniakou <stas.cherniakov@gmail.com>"
+LINKS = '<h3>Постоянная ссылка</h3><a href="/link/2/%s">На неделю</a> | <a href="/link/3/%s">На семестр</a>'
+
+COMMENT_NOTIFICATION_SUBJECT = "New comment for Scheduler+"
+
+COMMENT_NOTIFICATION_RECIPIENT = "Stanislau Charniakou <stas.cherniakov@gmail.com>"
 
 API_APP = {
     'APP_NAME': 'scheduler',
@@ -23,6 +30,5 @@ API_APP = {
     'SCOPES': ['https://www.google.com/calendar/feeds/']
 }
 
-TEMPLATE_DIRS = (os.path.join(os.path.dirname(__file__),'templates'),'')
+TEMPLATE_DIRS = (os.path.join(os.path.dirname(__file__), 'templates'), '')
 
-PERIOD=2

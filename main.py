@@ -1,52 +1,56 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# advanced bseu.by schedule parcer
+#
+# advanced bseu.by schedule parser
 #
 
 import os
-os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
-from gaesessions import get_current_session
-from google.appengine.ext import webapp
-from google.appengine.ext.webapp import util, template
-from google.appengine.api import urlfetch, users
-from models import Student, Event
 import datetime
-import urllib, Cookie
+import urllib
+import Cookie
 import logging
-import scheduleparser, settings, mailer
+
+from google.appengine.ext.webapp import template
+from google.appengine.api import urlfetch, users
+import webapp2
+
+from gaesessions import get_current_session
+from models import Student, Event, add_permalink_and_get_key
+import parser
+import settings
+import mailer
 
 
-logging.getLogger().setLevel(logging.DEBUG)
-
-
-class apihandler(webapp.RequestHandler):
+class ScheduleApi(webapp2.RequestHandler):
     def get_schedule_week(self, message, action):
-        data = urllib.urlencode(message)
-        url = settings.BSEUURL
-        result = urlfetch.fetch(url=url,
-            payload=data,
-            method=urlfetch.POST,
-            headers=settings.HEADERS)
+        result = urlfetch.fetch(url=settings.BSEU_SHEDULE_URL,
+                                payload=urllib.urlencode(message),
+                                method=urlfetch.POST,
+                                headers=settings.HEADERS)
         if result.status_code == 200:
             if action == 'view':
-                self.response.out.write(template.render(os.path.join(os.path.dirname(__file__), 'templates/schedule.html'), {'schedule':scheduleparser.show(result.content), 'uri':self.request.url}))
+                self.response.out.write(template.render(os.path.join(os.path.dirname(__file__),
+                                                                     'templates/schedule.html'),
+                                                        {'schedule': parser.show(result.content),
+                                                         'uri': self.request.url}))
             elif action == 'save':
                 try:
-                    parsedlist = scheduleparser.read(result.content)
+                    parsed_list = parser.read(result.content)
                 except Exception, e:
                     logging.debug(e)
-                    return "unseccess: %s" % e
+                    return "error: %s" % e
                 else:
-                    for parsed in parsedlist:
-                        new_sched = Event(title=parsed['subject'],
-                            description=parsed['description'],
-                            location=parsed['location'],
-                            starttime=parsed['date']['start'],
-                            endtime=parsed['date']['end'],
-                            creator=users.get_current_user())
-                        if new_sched.creator:
-                            new_sched.put()
+                    for parsed in parsed_list:
+                        new_schedule = Event(title=parsed['subject'],
+                                             description=parsed['description'],
+                                             location=parsed['location'],
+                                             starttime=parsed['date']['start'],
+                                             endtime=parsed['date']['end'],
+                                             creator=users.get_current_user())
+                        if new_schedule.creator:
+                            new_schedule.put()
                     self.redirect('/importer')
+
     def get(self):
         data = {}
         for field in self.request.arguments():
@@ -54,74 +58,81 @@ class apihandler(webapp.RequestHandler):
                 self.action = self.request.get(field)
             else:
                 data[field] = self.request.get(field)
-        data['__act'] = self.request.get('__act', '__id.25.main.inpFldsA.GetSchedule__sp.7.results__fp.4.main')
-        data['period'] = self.request.get('period', settings.PERIOD)
-        self.data = data
-        self.get_schedule_week(self.data, self.action)
+
+        data['__act'] = self.request.get('__act', settings.ACTION_ID)
+        data['period'] = self.request.get('period', settings.BSEU_DEFAULT_PERIOD)
+        self.get_schedule_week(data, self.action)
 
 
-class main_page(webapp.RequestHandler):
+class MainPage(webapp2.RequestHandler):
     """
     UI. let user authenticate log in params and sets task. also shows results
     """
 
-    def get(self, *args, **kwargs):
+    def get(self):
         self.user = users.get_current_user()
-        self.session=get_current_session()
+        self.session = get_current_session()
         self.response.headers['Content-Type'] = 'text/html'
-        self.context={}
+        self.context = {}
         if self.user:
-            self.context['account']={'username':self.user.nickname(),'logout_url':users.create_logout_url("/")}
+            self.context['account'] = {'username': self.user.nickname(), 'logout_url': users.create_logout_url("/")}
         else:
-            self.context['account']={'login_url':users.create_login_url("/")}
+            self.context['account'] = {'login_url': users.create_login_url("/")}
         self.check_settings()
-        self.response.out.write(template.render(os.path.join(os.path.dirname(__file__), 'templates/main.html'), self.context))
+        self.response.out.write(
+            template.render(os.path.join(os.path.dirname(__file__), 'templates/main.html'), self.context))
 
     def post(self):
         existent = Student.all().filter("student =", users.get_current_user()).get()
         if not existent is None:
-            if self.request.get('group'): existent.group = int(self.request.get('group'))
-            if self.request.get('form'): existent.form = int(self.request.get('form'))
+            if self.request.get('group'):
+                existent.group = int(self.request.get('group'))
+            if self.request.get('form'):
+                existent.form = int(self.request.get('form'))
             existent.auto = bool(int(self.request.get('mode')))
-            if self.request.get('faculty'): existent.faculty = int(self.request.get('faculty'))
-            if self.request.get('course'): existent.course = int(self.request.get('course'))
+            if self.request.get('faculty'):
+                existent.faculty = int(self.request.get('faculty'))
+            if self.request.get('course'):
+                existent.course = int(self.request.get('course'))
             existent.lastrun = datetime.datetime.now()
-            curcalname = self.request.get('calendar_name', False)
-            curcalid = self.request.get('calendar', False)
-            if curcalname and curcalid:
-                existent.calendar_id = curcalid
-                existent.calendar = curcalname
-            userprofile = existent
+            current_calendar_name = self.request.get('calendar_name', False)
+            current_calendar_id = self.request.get('calendar', False)
+            if current_calendar_name and current_calendar_id:
+                existent.calendar_id = current_calendar_id
+                existent.calendar = current_calendar_name
+            user_profile = existent
         else:
-            userprofile = Student(group=int(self.request.get('group')),
-                form=int(self.request.get('form')),
-                auto=bool(self.request.get('mode')),
-                faculty=int(self.request.get('faculty')),
-                course=int(self.request.get('course')),
-                student=users.get_current_user(),
-                lastrun=datetime.datetime.now(),
-                calendar_id=self.request.get('calendar'),
-                calendar=self.request.get('calendar_name'))
+            user_profile = Student(group=int(self.request.get('group')),
+                                   form=int(self.request.get('form')),
+                                   auto=bool(self.request.get('mode')),
+                                   faculty=int(self.request.get('faculty')),
+                                   course=int(self.request.get('course')),
+                                   student=users.get_current_user(),
+                                   lastrun=datetime.datetime.now(),
+                                   calendar_id=self.request.get('calendar'),
+                                   calendar=self.request.get('calendar_name'))
 
         self.send_comment(self.request.get('comment'))
-        userprofile.put()
+        user_profile.put()
 
     def check_settings(self):
 
         user_settings = Student.all().filter("student =", users.get_current_user()).order("-lastrun").get()
 
         if not user_settings is None:
-            self.context['permalink'] = settings.ARGS % (
-            user_settings.faculty, user_settings.group, user_settings.course, user_settings.form)
+            self.context['permalink'] = add_permalink_and_get_key(user_settings.group,
+                                                                  user_settings.faculty,
+                                                                  user_settings.course,
+                                                                  user_settings.form)
             if user_settings.calendar and not self.session.has_key('calendars'):
-                self.context['calendar']={'saved':{'name':user_settings.calendar}}
+                self.context['calendar'] = {'saved': {'name': user_settings.calendar}}
                 if self.session.has_key('import'):
-                    self.context['calendar']['imported']=True
+                    self.context['calendar']['imported'] = True
                     del self.session['import']
-                self.context['auto_import']=user_settings.auto
+                self.context['auto_import'] = user_settings.auto
 
         if self.session.has_key('calendars'):
-            self.context['calendar'] = {'picker':self.session['calendars']}
+            self.context['calendar'] = {'picker': self.session['calendars']}
             del self.session['calendars']
 
     def send_comment(self, comm):
@@ -129,17 +140,17 @@ class main_page(webapp.RequestHandler):
         if not comm is None and not comm == '':
             self.user = users.get_current_user()
             mailer.send(sender=self.user.email(),
-                            recipient=settings.to,
-                            subject=settings.subject,
-                            message=comm)
+                        recipient=settings.COMMENT_NOTIFICATION_RECIPIENT,
+                        subject=settings.COMMENT_NOTIFICATION_SUBJECT,
+                        message=comm)
 
 
-class proxy(webapp.RequestHandler):
+class proxy(webapp2.RequestHandler):
     def _fake(self):
         self.head = settings.HEADERS
         self.cookie = Cookie.SimpleCookie()
-        result = urlfetch.fetch(url=settings.BSEUURL, method=urlfetch.GET,
-            headers=self.head)
+        result = urlfetch.fetch(url=settings.BSEU_SHEDULE_URL, method=urlfetch.GET,
+                                headers=self.head)
         self.cookie.load(result.headers.get('set-cookie', ''))
 
     def get(self):
@@ -147,8 +158,8 @@ class proxy(webapp.RequestHandler):
         dat = {}
         for field in self.request.arguments():
             dat[field] = self.request.get(field)
-        result = urlfetch.fetch(url=settings.BSEUURL, payload=urllib.urlencode(dat), method=urlfetch.POST,
-            headers=self._getHeaders(self.cookie))
+        result = urlfetch.fetch(url=settings.BSEU_SHEDULE_URL, payload=urllib.urlencode(dat), method=urlfetch.POST,
+                                headers=self._getHeaders(self.cookie))
         self.response.out.write(result.content)
 
     def _makeCookieHeader(self, cookie):
@@ -162,18 +173,13 @@ class proxy(webapp.RequestHandler):
         return self.head
 
 
-class help_page(webapp.RequestHandler):
+class HelpPage(webapp2.RequestHandler):
     def get(self):
-        self.response.out.write(template.render(os.path.join(os.path.dirname(__file__), 'templates/help.html'),{}))
+        self.response.out.write(template.render(os.path.join(os.path.dirname(__file__), 'templates/help.html'), {}))
 
 
-def main():
-    application = webapp.WSGIApplication([('/scheduleapi', apihandler),
-        ('/', main_page),
-        ('/help', help_page),
-        ('/proxy', proxy)],
-        debug=False)
-    util.run_wsgi_app(application)
-
-if __name__ == '__main__':
-    main()
+app = webapp2.WSGIApplication([('/scheduleapi', ScheduleApi),
+                                          ('/', MainPage),
+                                          ('/help', HelpPage),
+                                          ('/proxy', proxy)],
+                                         debug=False)

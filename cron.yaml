@@ -1,13 +1,13 @@
 cron:
 - description: weekly fetch
-  url: /batchfetcher
+  url: /fetch_schedules
   schedule: every sunday 10:30
   timezone: Europe/Minsk
   target: weekly
   
 - description: weekly import
-  url: /batchinserter
-  schedule: every sunday 10:50
+  url: /create_events
+  schedule: every sunday 11:00
   timezone: Europe/Minsk
   target: weekly
 

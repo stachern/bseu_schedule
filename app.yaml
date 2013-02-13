@@ -1,13 +1,13 @@
 application: bseu-api
-version: xml2jsonfix
+version: 2-0
 runtime: python27
 threadsafe: false
 api_version: 1
 
 handlers:
 - url: /favicon\.ico
-  static_files: favicon.ico
-  upload: favicon\.ico
+  static_files: /static/img/favicon.ico
+  upload: /static/img/favicon\.ico
 
 - url: /css
   static_dir: css
@@ -15,29 +15,54 @@ handlers:
 - url: /scripts
   static_dir: scripts
 
+- url: /static/img
+  static_dir: static/img
+
+- url: /static/js
+  static_dir: static/js
+
+- url: /static/css
+  static_dir: static/css
+
 - url: /images
   static_dir: images
 
 - url: /auth
-  script: auth.py
+  script: auth.app
 
 - url: /calendar_auth
-  script: auth.py
+  script: auth.app
+
+- url: /link/.*
+  script: resolver.app
 
 - url: /importer
-  script: gcal.py
+  script: calendar.app
   
-- url: /batchfetcher
-  script: gcal.py
+- url: /fetch_schedules
+  script: calendar.app
   login: admin
 
-- url: /batchinserter
-  script: gcal.py
-  login: admin  
+- url: /create_events
+  script: calendar.app
+  login: admin
+
+- url: /maintenance
+  script: maintenance.app
+  login: admin
 
 - url: .*
-  script: main.py
+  script: main.app
 
 libraries:
 - name: lxml
   version: latest
+
+- name: webapp2
+  version: "2.5.1"
+
+builtins:
+- appstats: on
+
+env_variables:
+  DJANGO_SETTINGS_MODULE: 'settings'
