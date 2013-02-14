@@ -2,23 +2,23 @@
 # -*- coding: utf-8 -*-
 
 from datetime import timedelta, time
-import urllib
 import logging
 
 from google.appengine.ext import db
-from google.appengine.api import urlfetch, users
+from google.appengine.api import users
 from webapp2_extras.appengine.users import login_required
+from utils.bseu_schedule import fetch_and_parse_week
 
 from handler import RequestHandler
 from gaesessions import get_current_session
 from models import Student, Event
-from settings import BSEU_SHEDULE_URL, HEADERS, API_APP, BSEU_DEFAULT_PERIOD, ACTION_ID
+import models
+from settings import API_APP
 import gdata.gauth
 import gdata.calendar.data
 import gdata.calendar.client
 import atom.data
-import schedule_parser
-import mailer
+from utils import mailer
 
 
 gcal_client = gdata.calendar.client.CalendarClient(source=API_APP['APP_NAME'])
@@ -65,35 +65,6 @@ def create_calendar_events(who):
     db.delete(batch)
 
 
-def fetch(student):
-    data = {
-        '__act': ACTION_ID,
-        'period': BSEU_DEFAULT_PERIOD,
-        'faculty': student.faculty,
-        'group': student.group,
-        'course': student.course,
-        'form': student.form
-    }
-
-    result = urlfetch.fetch(url=BSEU_SHEDULE_URL,
-                            payload=urllib.urlencode(data),
-                            method=urlfetch.POST,
-                            headers=HEADERS)
-    try:
-        parsed_list = schedule_parser.read(result.content)
-    except Exception, e:
-        logging.error(e)
-    else:
-        for parsed in parsed_list:
-            new_schedule = Event(title=parsed['subject'],
-                                 description=parsed['description'],
-                                 location=parsed['location'],
-                                 starttime=parsed['date']['start'],
-                                 endtime=parsed['date']['end'],
-                                 creator=student.student)
-            new_schedule.put()
-
-
 class ImportHandler(RequestHandler):
     @login_required
     def get(self):
@@ -111,7 +82,7 @@ class BatchFetcher(RequestHandler):
         for stud in results:
             if stud.calendar:
                 logging.info('fetching for %s' % stud.student.email())
-                fetch(stud)
+                models.save_event(fetch_and_parse_week(stud), stud.student)
         self.response.out.write('success')
 
 

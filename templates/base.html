@@ -19,7 +19,7 @@
     {% block styles %}{% endblock %}
     <!-- JavaScript -->
     <script src="/scripts/wufoo.js"></script>
-    <script src="/scripts/form.js"></script>
+    <script src="/static/js/custom.js"></script>
     <script src='http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js'></script>
     {% block scripts %}{% endblock %}
     <!--[if lt IE 10]>
@@ -29,7 +29,7 @@
 
         var _gaq = _gaq || [];
         _gaq.push(['_setAccount', 'UA-22509903-2']);
-        _gaq.push(['_setDomainName', 'inside.by']);
+        _gaq.push(['_setDomainName', 'app.inside.by']);
         _gaq.push(['_trackPageview']);
 
         (function () {

@@ -9,6 +9,7 @@ import leaf
 WEEKDAYS = {u'понедельник': 1, u'вторник': 2, u'среда': 3, u'четверг': 4, u'пятница': 5, u'суббота': 6}
 MAIN_TABLE_PATTERN = re.compile(r'<table\b.*?>.*?</table>', re.DOTALL)
 
+
 def get_semester_start_date():
     return datetime.strptime('2013-02-03', '%Y-%m-%d')
 

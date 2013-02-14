@@ -16,14 +16,13 @@ from handler import RequestHandler
 
 from gaesessions import get_current_session
 from models import Student, Event, add_permalink_and_get_key
-import schedule_parser
 import settings
-import mailer
+from utils import schedule_parser, mailer, bseu_schedule
 
 
 class ScheduleApi(RequestHandler):
     def get_schedule_week(self, message, action):
-        result = urlfetch.fetch(url=settings.BSEU_SHEDULE_URL,
+        result = urlfetch.fetch(url=settings.BSEU_SCHEDULE_URL,
                                 payload=urllib.urlencode(message),
                                 method=urlfetch.POST,
                                 headers=settings.HEADERS)
@@ -60,7 +59,7 @@ class ScheduleApi(RequestHandler):
                 data[field] = self.request.get(field)
 
         data['__act'] = self.request.get('__act', settings.ACTION_ID)
-        data['period'] = self.request.get('period', settings.BSEU_DEFAULT_PERIOD)
+        data['period'] = self.request.get('period', settings.BSEU_WEEK_PERIOD)
         self.get_schedule_week(data, self.action)
 
 
@@ -70,17 +69,8 @@ class MainPage(RequestHandler):
     """
 
     def get(self):
-        self.user = users.get_current_user()
-        self.session = get_current_session()
         self.response.headers['Content-Type'] = 'text/html'
-        self.context = {}
-        if self.user:
-            self.context['account'] = {'username': self.user.nickname(), 'logout_url': users.create_logout_url("/")}
-        else:
-            self.context['account'] = {'login_url': users.create_login_url("/")}
-        self.get_context()
-        self.response.out.write(
-            template.render(os.path.join(os.path.dirname(__file__), 'templates/main.html'), self.context))
+        self.response.out.write(template.render("templates/html/main.html", self.get_context()))
 
     def post(self):
         existent = Student.all().filter("student =", users.get_current_user()).get()
@@ -116,24 +106,36 @@ class MainPage(RequestHandler):
         user_profile.put()
 
     def get_context(self):
+        self.user = users.get_current_user()
+        self.session = get_current_session()
+        context = {'user': self.user}
+        if self.user:
+            context['logout_url'] = users.create_logout_url('/')
+        else:
+            context['login_url'] = users.create_login_url('/')
+        student = Student.all().filter("student =", users.get_current_user()).order("-lastrun").get()
 
-        user_settings = Student.all().filter("student =", users.get_current_user()).order("-lastrun").get()
-
-        if not user_settings is None:
-            self.context['permalink'] = add_permalink_and_get_key(user_settings.group,
-                                                                  user_settings.faculty,
-                                                                  user_settings.course,
-                                                                  user_settings.form)
-            if user_settings.calendar and not self.session.has_key('calendars'):
-                self.context['calendar'] = {'saved': {'name': user_settings.calendar}}
+        if student:
+            context['permalink'] = add_permalink_and_get_key(student.group,
+                                                             student.faculty,
+                                                             student.course,
+                                                             student.form)
+            if student.calendar and not self.session.has_key('calendars'):
+                context['calendar'] = {'saved': {'name': student.calendar}}
                 if self.session.has_key('import'):
-                    self.context['calendar']['imported'] = True
+                    context['calendar']['imported'] = True
                     del self.session['import']
-                self.context['auto_import'] = user_settings.auto
+                context['auto_import'] = student.auto
+            # replace to apply table styles
+            context['schedule'] = {'week': bseu_schedule.fetch_and_show_week(student),
+                                   'semester': bseu_schedule.fetch_and_show_semester(student)}
 
         if self.session.has_key('calendars'):
-            self.context['calendar'] = {'picker': self.session['calendars']}
+            context['calendar'] = {'picker': self.session['calendars']}
             del self.session['calendars']
+
+
+        return context
 
     def send_comment(self, comm):
         logging.debug("comment from user: %s" % comm)
@@ -149,7 +151,7 @@ class proxy(RequestHandler):
     def _fake(self):
         self.head = settings.HEADERS
         self.cookie = Cookie.SimpleCookie()
-        result = urlfetch.fetch(url=settings.BSEU_SHEDULE_URL, method=urlfetch.GET,
+        result = urlfetch.fetch(url=settings.BSEU_SCHEDULE_URL, method=urlfetch.GET,
                                 headers=self.head)
         self.cookie.load(result.headers.get('set-cookie', ''))
 
@@ -158,7 +160,7 @@ class proxy(RequestHandler):
         dat = {}
         for field in self.request.arguments():
             dat[field] = self.request.get(field)
-        result = urlfetch.fetch(url=settings.BSEU_SHEDULE_URL, payload=urllib.urlencode(dat), method=urlfetch.POST,
+        result = urlfetch.fetch(url=settings.BSEU_SCHEDULE_URL, payload=urllib.urlencode(dat), method=urlfetch.POST,
                                 headers=self._getHeaders(self.cookie))
         self.response.out.write(result.content)
 

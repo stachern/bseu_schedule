@@ -10,6 +10,6 @@ def send(recipient, message=False, params=False, subject='BSEU schedule import',
     if params:
         mail.send_mail(sender=sender, to=recipient, subject=subject,
             body=template.render(os.path.join(os.path.dirname(__file__),
-                                 'templates/email/notification.html'), params))
+                                              '../templates/email/notification.html'), params))
     if message:
         mail.send_mail(sender=sender, to=recipient, subject=subject, body=message)

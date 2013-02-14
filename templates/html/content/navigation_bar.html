@@ -1,0 +1,16 @@
+<div class="nav-collapse collapse">
+    {% block user_block %}
+        {% if user %}
+            <p class="navbar-text pull-right">
+                <a class="navbar-link" href="mailto:{{user.email}}">{{user.nickname}}</a> | <a class="navbar-link" href="{{ logout_url }}">Выйти</a>
+            </p>
+        {% else %}
+            <p class="navbar-text pull-right">
+                <a class="navbar-link" href="{{ login_url }}">Войти через Google</a>
+            </p>
+        {% endif %}
+    {% endblock %}
+    <ul class="nav">
+        {% block navigation %}{% endblock %}
+    </ul>
+</div><!--/.nav-collapse -->

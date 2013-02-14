@@ -29,7 +29,7 @@ class Student(db.Model):
         return str(self.key())
 
     def __repr__(self):
-        return self.student.name
+        return self.student.nickname
 
 
 class PermanentLinks(db.Model):
@@ -55,3 +55,14 @@ def add_permalink_and_get_key(group, faculty, form, course):
         link = PermanentLinks(group=group, faculty=faculty, form=form, course=course)
         link.put()
         return link.id
+
+
+def save_event(event_list, creator):
+    for event in event_list:
+        new_schedule = Event(title=event['subject'],
+                             description=event['description'],
+                             location=event['location'],
+                             starttime=event['date']['start'],
+                             endtime=event['date']['end'],
+                             creator=creator)
+        new_schedule.put()

@@ -6,26 +6,18 @@ api_version: 1
 
 handlers:
 - url: /favicon\.ico
-  static_files: /static/img/favicon.ico
-  upload: /static/img/favicon\.ico
+  static_files: static/img/favicon.ico
+  upload: static/img/favicon.ico
 
-- url: /css
-  static_dir: css
 
-- url: /scripts
-  static_dir: scripts
-
-- url: /static/img
+- url: /img
   static_dir: static/img
 
-- url: /static/js
+- url: /js
   static_dir: static/js
 
-- url: /static/css
+- url: /css
   static_dir: static/css
-
-- url: /images
-  static_dir: images
 
 - url: /task/.*
   script: dispatch.tasks_app

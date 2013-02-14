@@ -2,7 +2,7 @@ import webapp2
 from auth import Auth, RequestTokenCallback
 from events_calendar import ImportHandler, BatchInserter, BatchFetcher
 from main import ScheduleApi, MainPage, HelpPage, proxy
-from maintenance import MaintenanceTask
+from utils.maintenance import MaintenanceTask
 from resolver import ResolveLink
 
 SITE_URLS = [
