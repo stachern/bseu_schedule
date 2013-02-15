@@ -15,7 +15,7 @@ logging.getLogger().setLevel(logging.DEBUG)
 gcal = gdata.calendar.client.CalendarClient(source=API_APP['APP_NAME'])
 
 
-class Auth(RequestHandler):
+class AuthRequestInit(RequestHandler):
     @login_required
     def get(self):
         """This handler is responsible for fetching an initial OAuth
@@ -28,7 +28,7 @@ class Auth(RequestHandler):
         consumer_key = API_APP['CONSUMER_KEY']
         consumer_secret = API_APP['CONSUMER_SECRET']
         request_token = gcal.get_oauth_token(scopes, oauth_callback,
-            consumer_key, consumer_secret)
+                                             consumer_key, consumer_secret)
 
         request_token_key = 'request_token_%s' % current_user.user_id()
         gdata.gauth.ae_save(request_token, request_token_key)
@@ -38,7 +38,7 @@ class Auth(RequestHandler):
             '<html><script type="text/javascript">window.location = "%s"</script></html>' % approval_page_url)
 
 
-class RequestTokenCallback(RequestHandler):
+class AuthRequestCallback(RequestHandler):
 
     @login_required
     def get(self):
@@ -48,7 +48,7 @@ class RequestTokenCallback(RequestHandler):
 
         current_user = users.get_current_user()
 
-        self.session=get_current_session()
+        self.session = get_current_session()
 
         if self.session.is_active():
             self.session.terminate()
@@ -62,7 +62,8 @@ class RequestTokenCallback(RequestHandler):
 
         try:
             feed = gcal.GetOwnCalendarsFeed()
-            self.session['calendars'] = [{'title':a_calendar.title.text, 'id':a_calendar.GetAlternateLink().href} for a_calendar in feed.entry]
+            self.session['calendars'] = [{'title':a_calendar.title.text,
+                                          'id':a_calendar.GetAlternateLink().href} for a_calendar in feed.entry]
         except UnicodeEncodeError, e:
             logging.error('error retrieving calendar list: %s' % e)
 

@@ -19,8 +19,41 @@ from models import Student, Event, add_permalink_and_get_key
 import settings
 from utils import schedule_parser, mailer, bseu_schedule
 
+
 def _get_common_context():
     context = {'faculty_list': settings.BSEU_FACULTY_LIST}
+    return context
+
+
+def get_user_context():
+    user = users.get_current_user()
+    session = get_current_session()
+    context = _get_common_context()
+    context['user'] = user
+    if user:
+        context['logout_url'] = users.create_logout_url('/')
+    else:
+        context['login_url'] = users.create_login_url('/')
+    student = Student.all().filter("student =", users.get_current_user()).order("-lastrun").get()
+
+    if student:
+        context['permalink'] = add_permalink_and_get_key(student.group,
+                                                         student.faculty,
+                                                         student.course,
+                                                         student.form)
+        if student.calendar and not session.has_key('calendars'):
+            context['calendar'] = {'saved': {'name': student.calendar}}
+            if session.has_key('import'):
+                context['calendar']['imported'] = True
+                del session['import']
+            context['auto_import'] = student.auto
+            # replace to apply table styles
+        context['schedule'] = {'week': bseu_schedule.fetch_and_show_week(student),
+                               'semester': bseu_schedule.fetch_and_show_semester(student)}
+
+    if session.has_key('calendars'):
+        context['calendar'] = {'picker': session['calendars']}
+        del session['calendars']
 
     return context
 
@@ -74,8 +107,7 @@ class MainPage(RequestHandler):
     """
 
     def get(self):
-        self.response.headers['Content-Type'] = 'text/html'
-        self.response.out.write(template.render("templates/html/main.html", self.get_context()))
+        self.response.out.write(template.render("templates/html/main.html", get_user_context()))
 
     def post(self):
         existent = Student.all().filter("student =", users.get_current_user()).get()
@@ -110,39 +142,6 @@ class MainPage(RequestHandler):
         self.send_comment(self.request.get('comment'))
         user_profile.put()
 
-    def get_context(self):
-        self.user = users.get_current_user()
-        self.session = get_current_session()
-        context = _get_common_context()
-        context['user'] = self.user
-        if self.user:
-            context['logout_url'] = users.create_logout_url('/')
-        else:
-            context['login_url'] = users.create_login_url('/')
-        student = Student.all().filter("student =", users.get_current_user()).order("-lastrun").get()
-
-        if student:
-            context['permalink'] = add_permalink_and_get_key(student.group,
-                                                             student.faculty,
-                                                             student.course,
-                                                             student.form)
-            if student.calendar and not self.session.has_key('calendars'):
-                context['calendar'] = {'saved': {'name': student.calendar}}
-                if self.session.has_key('import'):
-                    context['calendar']['imported'] = True
-                    del self.session['import']
-                context['auto_import'] = student.auto
-            # replace to apply table styles
-            context['schedule'] = {'week': bseu_schedule.fetch_and_show_week(student),
-                                   'semester': bseu_schedule.fetch_and_show_semester(student)}
-
-        if self.session.has_key('calendars'):
-            context['calendar'] = {'picker': self.session['calendars']}
-            del self.session['calendars']
-
-
-        return context
-
     def send_comment(self, comm):
         logging.debug("comment from user: %s" % comm)
         if not comm is None and not comm == '':
@@ -151,6 +150,13 @@ class MainPage(RequestHandler):
                         recipient=settings.COMMENT_NOTIFICATION_RECIPIENT,
                         subject=settings.COMMENT_NOTIFICATION_SUBJECT,
                         message=comm)
+
+
+class EditPage(RequestHandler):
+    def get(self):
+        context = get_user_context()
+        context['action'] = 'edit'
+        self.response.out.write(template.render("templates/html/main.html", context))
 
 
 class proxy(RequestHandler):
