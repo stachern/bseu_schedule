@@ -2,15 +2,20 @@
 {% block content %}
     <div class="container-fluid">
         <div class="row-fluid">
-            <div class="span6" id="schedule-display">
+            <div class="span7" id="schedule-display">
                 <!--displaying schedule-->
                 {% if  schedule%}
                     {% include "content/schedule_table.html" %}
                 {% endif %}
             </div>
-            <div class="span4" id="student-info">
+            <div class="span5" id="student-info">
                 <!--student form display-->
 
+                <div class="container-fluid hero-unit">
+                {% if action == 'edit' or not user %}
+                    {% include "content/student_info_edit.html" %}
+                {% endif %}
+                </div>
             </div>
         </div>
     </div>

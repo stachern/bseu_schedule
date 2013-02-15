@@ -19,6 +19,11 @@ from models import Student, Event, add_permalink_and_get_key
 import settings
 from utils import schedule_parser, mailer, bseu_schedule
 
+def _get_common_context():
+    context = {'faculty_list': settings.BSEU_FACULTY_LIST}
+
+    return context
+
 
 class ScheduleApi(RequestHandler):
     def get_schedule_week(self, message, action):
@@ -108,7 +113,8 @@ class MainPage(RequestHandler):
     def get_context(self):
         self.user = users.get_current_user()
         self.session = get_current_session()
-        context = {'user': self.user}
+        context = _get_common_context()
+        context['user'] = self.user
         if self.user:
             context['logout_url'] = users.create_logout_url('/')
         else:

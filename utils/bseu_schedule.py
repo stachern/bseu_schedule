@@ -29,7 +29,7 @@ def fetch_and_show_week(student):
 
 def fetch_and_show_semester(student):
     return schedule_parser.show(_fetch_raw_html_schedule(student.faculty, student.course, student.group,
-                                                         student.form, period=settings.BSEU_SEMESTER_PERIOD)).replace('id="sched"',
+                                                         student.form, settings.BSEU_SEMESTER_PERIOD)).replace('id="sched"',
                                                                                                                       'class="table table-bordered table-hover"')
 
 

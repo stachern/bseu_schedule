@@ -13,6 +13,7 @@
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link href="css/bootstrap-responsive.min.css" rel="stylesheet">
     <link href="css/todc-bootstrap.css" rel="stylesheet">
+    <link href="css/select2.css" rel="stylesheet">
     <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
@@ -53,23 +54,22 @@
 
         <div id="push"></div>
     </div>
-
+    <div > {% include "misc/yandex_share.html" %} </div>
     <div id="footer">
         <div class="container">
             <p class="muted credit">По всем вопросам обращаться к <a href="mailto:stachern@inside.by">stachern</a>.
                 {%block app_info%}
-                    &nbsp;
-                    <small>
-                        v.2
-                    </small>
+                    <small class="pull-right">v.2 powered by Google App Engine</small>
                 {%endblock%}
             </p>
         </div>
+
     </div>
 {% endblock %}
 
-<script src="js/bootstrap.min.js"></script>
 <script src="js/custom.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/select2.min.js"></script>
 
 </body>
 </html>

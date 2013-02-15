@@ -1,0 +1,37 @@
+<form id="study_detail">
+    <fieldset>
+        <legend>Параметры</legend>
+        <label>Факультет</label>
+
+        <select id="faculty" name="faculty" class="g-select span3">
+            {% for ft in faculty_list %}
+                <option value="{{ ft.0 }}">{{ ft.1 }}</option>
+            {% endfor %}
+        </select>
+
+        <label>Форма обучения</label>
+        <select id="form" name="form">
+
+        </select>
+
+        <label>Курс</label>
+        <select id="course" name="course">
+
+        </select>
+
+        <label>Группа</label>
+        <select id="group" name="group">
+
+        </select>
+        <br>
+        <button type="submit" class="btn">Submit</button>
+    </fieldset>
+</form>
+<script>
+    $(document).ready(function() {
+        $("#study_detail select").eq(0).select2({
+            placeholder: "Select one...",
+            showSearchInput: false
+        });
+    });
+</script>

@@ -33,10 +33,3 @@ function parser(data, item){
     $(item).attr('onchange', 'getval(this);');
     $(item).find('option[selected="selected"]').html('Выберите')
     }
-
-function select_schedule_tab(){
-    $('.schedule-tab').addClass('hidden');
-    $('.schedule-tab-bar li').removeClass('active');
-    $(this).parent().addClass('active');
-    $('#'+ $(this).attr('rel')).removeClass('hidden');
-}

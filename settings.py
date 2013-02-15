@@ -9,10 +9,24 @@ HEADERS = {'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;
            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; rv:11.0) Gecko/20100101 Firefox/11.0'}
 
 BSEU_SCHEDULE_URL = 'http://bseu.by/schedule/'
-
-#week
 BSEU_WEEK_PERIOD = 2
 BSEU_SEMESTER_PERIOD = 3
+BSEU_FACULTY_LIST = [
+    ("450", "Аспирантура"),
+    ("15", "ВШТ"),
+    ("18", "ВШУБ"),
+    ("432", "ИСГО"),
+    ("129", "Магистратура"),
+    ("530", "РИУ"),
+    ("12", "УЭФ"),
+    ("11", "ФМ"),
+    ("263", "ФМБК"),
+    ("13", "ФМк"),
+    ("7", "ФМЭО"),
+    ("2", "ФП"),
+    ("8", "ФФБД"),
+    ("14", "ФЭУТ")
+]
 
 ACTION_ID = '__id.25.main.inpFldsA.GetSchedule__sp.7.results__fp.4.main'
 
