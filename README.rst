@@ -2,7 +2,7 @@
 Schedule+
 ===========
 
-A simple webapp for Google App Engine for students of Belarus State Economic University - parses student classes schedule from university website bseu.by and creates events in Google Calendar
+A simple webapp for Google App Engine for the students of Belarus State Economic University - parses student classes schedule from university website bseu.by and creates events in Google Calendar
 
 Used stuff:
 ________
