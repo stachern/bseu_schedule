@@ -4,7 +4,6 @@
 # advanced bseu.by schedule parser
 #
 
-import datetime
 import urllib
 import Cookie
 import logging
@@ -13,7 +12,8 @@ from google.appengine.api import urlfetch, users
 from handler import RequestHandler
 
 from gaesessions import get_current_session
-from models import Student, add_permalink_and_get_key, PermanentLinks
+from models import Student, PermanentLinks
+from models import add_permalink_and_get_key, create_or_update_student
 import settings
 from utils import mailer, bseu_schedule
 
@@ -97,37 +97,18 @@ class MainPage(RequestHandler):
         self.render_to_response("templates/html/main.html", get_user_context())
 
     def post(self):
-        existent = Student.all().filter("student =", users.get_current_user()).get()
-        if not existent is None:
-            if self.request.get('group'):
-                existent.group = int(self.request.get('group'))
-            if self.request.get('form'):
-                existent.form = int(self.request.get('form'))
-            existent.auto = bool(int(self.request.get('mode')))
-            if self.request.get('faculty'):
-                existent.faculty = int(self.request.get('faculty'))
-            if self.request.get('course'):
-                existent.course = int(self.request.get('course'))
-            existent.lastrun = datetime.datetime.now()
-            current_calendar_name = self.request.get('calendar_name', False)
-            current_calendar_id = self.request.get('calendar', False)
-            if current_calendar_name and current_calendar_id:
-                existent.calendar_id = current_calendar_id
-                existent.calendar = current_calendar_name
-            user_profile = existent
+        """This handles pretty much all the changes"""
+        user = users.get_current_user()
+        if user:
+            create_or_update_student(user, self.request)
+            self.get()
         else:
-            user_profile = Student(group=int(self.request.get('group')),
-                                   form=int(self.request.get('form')),
-                                   auto=bool(self.request.get('mode')),
-                                   faculty=int(self.request.get('faculty')),
-                                   course=int(self.request.get('course')),
-                                   student=users.get_current_user(),
-                                   lastrun=datetime.datetime.now(),
-                                   calendar_id=self.request.get('calendar'),
-                                   calendar=self.request.get('calendar_name'))
-        user_profile.put()
-
-        self.get()
+            #user is anonymous
+            key = add_permalink_and_get_key(form=int(self.request.get('form')),
+                                            course=int(self.request.get('course')),
+                                            group=int(self.request.get('group')),
+                                            faculty=int(self.request.get('faculty')))
+            self.redirect('link/' + key)
 
 
 class EditPage(RequestHandler):

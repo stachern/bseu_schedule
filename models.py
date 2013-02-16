@@ -1,3 +1,4 @@
+import datetime
 from google.appengine.ext import db
 
 
@@ -19,7 +20,7 @@ class Student(db.Model):
     form = db.IntegerProperty()
     course = db.IntegerProperty()
     auto = db.BooleanProperty()
-    lastrun = db.DateTimeProperty()
+    lastrun = db.DateTimeProperty(auto_now=True)
     student = db.UserProperty(required=True)
     calendar = db.TextProperty()
     calendar_id = db.TextProperty()
@@ -67,5 +68,31 @@ def save_event(event_list, creator):
                              creator=creator)
         new_schedule.put()
 
-def create_or_update_student():
-    pass
+
+def create_or_update_student(user, request):
+    existent = Student.all().filter("student =", user).get()
+    if existent:
+        if request.get('group'):
+            existent.group = int(request.get('group'))
+        if request.get('form'):
+            existent.form = int(request.get('form'))
+        existent.auto = bool(int(request.get('mode')))
+        if request.get('faculty'):
+            existent.faculty = int(request.get('faculty'))
+        if request.get('course'):
+            existent.course = int(request.get('course'))
+        current_calendar_name = request.get('calendar_name', False)
+        current_calendar_id = request.get('calendar', False)
+        if current_calendar_name and current_calendar_id:
+            existent.calendar_id = current_calendar_id
+            existent.calendar = current_calendar_name
+        existent.put()
+    else:
+        Student(group=int(request.get('group')),
+                form=int(request.get('form')),
+                auto=bool(request.get('mode')),
+                faculty=int(request.get('faculty')),
+                course=int(request.get('course')),
+                student=user,
+                calendar_id=request.get('calendar'),
+                calendar=request.get('calendar_name')).put()
