@@ -1,37 +1,39 @@
-<form id="study_detail" method="POST">
-    <fieldset>
-        <legend>Параметры</legend>
-        <label>Факультет</label>
+<div>
+    <form id="study_detail" method="POST">
+        <fieldset>
+            <legend>Параметры</legend>
+            <label>Факультет</label>
 
-        <select id="faculty" name="faculty" >
-            <option value="-1">Выберите факультет</option>
-            {% for ft in faculty_list %}
-                <option value="{{ ft.0 }}">{{ ft.1 }}</option>
-            {% endfor %}
-        </select>
+            <select id="faculty" name="faculty" >
+                <option value="-1">Выберите факультет</option>
+                {% for ft in faculty_list %}
+                    <option value="{{ ft.0 }}">{{ ft.1 }}</option>
+                {% endfor %}
+            </select>
 
-        <label>Форма обучения</label>
-        <select id="form" name="form" >
+            <label>Форма обучения</label>
+            <select id="form" name="form" disabled="disabled">
 
-        </select>
+            </select>
 
-        <label>Курс</label>
-        <select id="course" name="course" >
+            <label>Курс</label>
+            <select id="course" name="course" disabled="disabled">
 
-        </select>
+            </select>
 
-        <label>Группа</label>
-        <select id="group" name="group" >
+            <label>Группа</label>
+            <select id="group" name="group" disabled="disabled">
 
-        </select>
-        <br>
-        {% if student %}
-            <button type="submit" class="btn btn-primary disabled">Сохранить</button>
-        {% else %}
-            <button type="submit" class="btn btn-primary disabled">Показать</button>
-        {% endif %}
-    </fieldset>
-</form>
+            </select>
+            <br>
+            {% if student %}
+                <button type="submit" class="btn btn-primary disabled">Сохранить</button>
+            {% else %}
+                <button type="submit" class="btn btn-primary disabled">Показать</button>
+            {% endif %}
+        </fieldset>
+    </form>
+</div>
 <script>
     $('#study_detail select').change(get_schedule_options);
 </script>

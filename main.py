@@ -20,7 +20,8 @@ from utils import mailer, bseu_schedule
 
 def _get_common_context():
     user = users.get_current_user()
-    context = {'faculty_list': settings.BSEU_FACULTY_LIST,
+    context = {'app_url': settings.APP_URL,
+               'faculty_list': settings.BSEU_FACULTY_LIST,
                'user': user}
     if user:
         context['logout_url'] = users.create_logout_url('/')
@@ -41,7 +42,7 @@ def get_user_context():
 
     if student:
         context['student'] = student
-        context['permalink'] = add_permalink_and_get_key(student.group,
+        context['link_key'] = add_permalink_and_get_key(student.group,
                                                          student.faculty,
                                                          student.course,
                                                          student.form)
@@ -76,14 +77,15 @@ class ScheduleApi(RequestHandler):
 
     def get(self):
         context = get_anonymous_context()
-        context['permalink'] = add_permalink_and_get_key(form=self.request.get('form'),
-                                                         course=self.request.get('course'),
-                                                         group=self.request.get('group'),
-                                                         faculty=self.request.get('faculty'))
-        links = PermanentLinks.get(context['permalink'])
+        context['link_key'] = add_permalink_and_get_key(form=int(self.request.get('form')),
+                                                        course=int(self.request.get('course')),
+                                                        group=int(self.request.get('group')),
+                                                        faculty=int(self.request.get('faculty')))
+        links = PermanentLinks.get(context['link_key'])
         context['schedule'] = {'week': bseu_schedule.fetch_and_show_week(links),
                                'semester': bseu_schedule.fetch_and_show_semester(links)}
         self.render_to_response('templates/html/main.html', context)
+
 
 class MainPage(RequestHandler):
     """

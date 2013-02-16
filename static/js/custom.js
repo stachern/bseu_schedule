@@ -37,4 +37,5 @@ function parser(data, item){
         $(item).append('<option value="'+this.value+'">'+this.text+'</option>');
         });
     $(item).find('option[selected="selected"]').html('Выберите');
+    $(item).removeAttr('disabled');
     }
