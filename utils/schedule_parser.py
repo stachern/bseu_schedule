@@ -1,10 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import os
 
 import re
 from datetime import datetime, timedelta
 
+from google.appengine.ext.webapp import template
+
 import leaf
+import settings
 
 WEEKDAYS = {u'понедельник': 1, u'вторник': 2, u'среда': 3, u'четверг': 4, u'пятница': 5, u'суббота': 6}
 MAIN_TABLE_PATTERN = re.compile(r'<table\b.*?>.*?</table>', re.DOTALL)
@@ -22,7 +26,7 @@ def show(raw_html_schedule):
     try:
         return MAIN_TABLE_PATTERN.findall(raw_html_schedule.decode('cp1251'))[0]
     except IndexError:
-        return '<h1><center>Нет доступного расписания</center></h1>'
+        return template.render(os.path.join(settings.ROOT_PATH, 'templates/html/misc/no_schedule_alert.html'), {})
 
 
 def read(raw_html_schedule):

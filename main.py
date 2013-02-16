@@ -29,6 +29,7 @@ def _get_common_context():
         context['login_url'] = users.create_login_url('/')
     return context
 
+
 def get_anonymous_context():
     context = _get_common_context()
     return context

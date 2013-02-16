@@ -32,8 +32,6 @@ ACTION_ID = '__id.25.main.inpFldsA.GetSchedule__sp.7.results__fp.4.main'
 
 SCHEDULE_VIEW_ARGS = 'faculty=%s&group=%s&course=%s&form=%s'
 
-LINKS = '<h3>Постоянная ссылка</h3><a href="/link/2/%s">На неделю</a> | <a href="/link/3/%s">На семестр</a>'
-
 COMMENT_NOTIFICATION_SUBJECT = "New comment for Scheduler+"
 
 COMMENT_NOTIFICATION_RECIPIENT = "Stanislau Charniakou <stas.cherniakov@gmail.com>"

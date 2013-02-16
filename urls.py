@@ -14,7 +14,7 @@ SITE_URLS = [
     webapp2.Route(r'/proxy', handler=AjaxProxy),
     webapp2.Route(r'/importer', handler=ImportHandler),
     webapp2.Route(r'/scheduleapi', handler=ScheduleApi),
-    webapp2.Route(r'/link/<period:\d>/<key>', handler=ResolveLink)
+    webapp2.Route(r'/link/<key>', handler=ResolveLink)
 ]
 
 TASKS_URLS = [
