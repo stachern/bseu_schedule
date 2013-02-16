@@ -136,39 +136,6 @@ class EditPage(RequestHandler):
         context['action'] = 'edit'
         self.render_to_response("templates/html/main.html", context)
 
-    def post(self):
-        existent = Student.all().filter("student =", users.get_current_user()).get()
-        if not existent is None:
-            if self.request.get('group'):
-                existent.group = int(self.request.get('group'))
-            if self.request.get('form'):
-                existent.form = int(self.request.get('form'))
-            existent.auto = bool(int(self.request.get('mode')))
-            if self.request.get('faculty'):
-                existent.faculty = int(self.request.get('faculty'))
-            if self.request.get('course'):
-                existent.course = int(self.request.get('course'))
-            existent.lastrun = datetime.datetime.now()
-            current_calendar_name = self.request.get('calendar_name', False)
-            current_calendar_id = self.request.get('calendar', False)
-            if current_calendar_name and current_calendar_id:
-                existent.calendar_id = current_calendar_id
-                existent.calendar = current_calendar_name
-            user_profile = existent
-        else:
-            user_profile = Student(group=int(self.request.get('group')),
-                                   form=int(self.request.get('form')),
-                                   auto=bool(self.request.get('mode')),
-                                   faculty=int(self.request.get('faculty')),
-                                   course=int(self.request.get('course')),
-                                   student=users.get_current_user(),
-                                   lastrun=datetime.datetime.now(),
-                                   calendar_id=self.request.get('calendar'),
-                                   calendar=self.request.get('calendar_name'))
-
-        user_profile.put()
-        self.redirect('/')
-
 
 class AjaxProxy(RequestHandler):
     def _fake(self):

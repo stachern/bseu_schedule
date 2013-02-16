@@ -6,6 +6,8 @@
                 <!--displaying schedule-->
                 {% if  schedule%}
                     {% include "content/schedule_table.html" %}
+                {% else %}
+                    {% include "content/user_guide.html" %}
                 {% endif %}
             </div>
             <div class="span5" id="student-info">
