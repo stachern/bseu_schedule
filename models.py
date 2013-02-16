@@ -76,7 +76,8 @@ def create_or_update_student(user, request):
             existent.group = int(request.get('group'))
         if request.get('form'):
             existent.form = int(request.get('form'))
-        existent.auto = bool(int(request.get('mode')))
+        if request.get('mode'):
+            existent.auto = bool(int(request.get('mode')))
         if request.get('faculty'):
             existent.faculty = int(request.get('faculty'))
         if request.get('course'):

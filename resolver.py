@@ -7,7 +7,7 @@ class ResolveLink(RequestHandler):
     """This is basically to keep old links valid"""
     def get(self, key):
         student = PermanentLinks.get(key)
-        self.redirect('%sscheduleapi?%s' % (settings.APP_URL, settings.SCHEDULE_VIEW_ARGS % (
+        self.redirect('/schedule?%s' % (settings.SCHEDULE_VIEW_ARGS % (
             student.faculty, student.group, student.course, student.form
         )))
 

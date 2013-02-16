@@ -13,7 +13,8 @@ SITE_URLS = [
     webapp2.Route(r'/help', handler=HelpPage),
     webapp2.Route(r'/proxy', handler=AjaxProxy),
     webapp2.Route(r'/importer', handler=ImportHandler),
-    webapp2.Route(r'/scheduleapi', handler=ScheduleApi),
+    webapp2.Route(r'/schedule', handler=ScheduleApi),
+    webapp2.Route(r'/scheduleapi', handler=ScheduleApi),  # legacy
     webapp2.Route(r'/link/<key>', handler=ResolveLink)
 ]
 
