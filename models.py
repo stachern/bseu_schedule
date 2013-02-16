@@ -66,3 +66,6 @@ def save_event(event_list, creator):
                              endtime=event['date']['end'],
                              creator=creator)
         new_schedule.put()
+
+def create_or_update_student():
+    pass
