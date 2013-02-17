@@ -8,7 +8,7 @@ class ResolveLink(RequestHandler):
     def get(self, key):
         student = PermanentLinks.get(key)
         self.redirect('/schedule?%s' % (settings.SCHEDULE_VIEW_ARGS % (
-            student.faculty, student.group, student.course, student.form
+            student.faculty, student.group, student.form, student.course
         )))
 
 

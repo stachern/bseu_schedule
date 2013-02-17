@@ -1,10 +1,5 @@
 cron:
-- description: weekly fetch
-  url: /task/fetch_schedules
-  schedule: every sunday 10:30
-  timezone: Europe/Minsk
-  target: weekly
-  
+
 - description: weekly import
   url: /task/create_events
   schedule: every sunday 11:00
