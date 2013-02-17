@@ -19,10 +19,14 @@ from utils import mailer, bseu_schedule
 
 
 def _get_common_context():
+    session = get_current_session()
     user = users.get_current_user()
     context = {'app_url': settings.APP_URL,
                'faculty_list': settings.BSEU_FACULTY_LIST,
                'user': user}
+    if 'messages' in session:
+        context['user_messages'] = session['messages']
+        del session['messages']
     if user:
         context['logout_url'] = users.create_logout_url('/')
     else:

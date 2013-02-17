@@ -1,16 +1,11 @@
 from google.appengine.ext import db
 
 
-class Event(db.Model):
-    """
-    temporary storage
-    """
-    title = db.StringProperty(required=True)
-    description = db.TextProperty()
-    starttime = db.DateTimeProperty()
-    endtime = db.DateTimeProperty()
-    location = db.TextProperty()
-    creator = db.UserProperty()
+class Event(object):
+
+    def __init__(self, *args, **kwargs):
+        for k, v in kwargs.iteritems():
+            super(Event, self).__setattr__(k, v)
 
 
 class Student(db.Model):

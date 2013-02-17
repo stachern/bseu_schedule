@@ -18,7 +18,7 @@ import gdata.gauth
 import gdata.calendar.data
 import gdata.calendar.client
 import atom.data
-from utils import mailer
+from utils import mailer, bseu_schedule
 
 
 gcal_client = gdata.calendar.client.CalendarClient(source=API_APP['APP_NAME'])
@@ -53,25 +53,21 @@ def InsertSingleEvent(calendar_client, title='bseu-api event',
         logging.debug('import was successful: %s-%s' % (title, content))
 
 
-def create_calendar_events(who):
-    access_token_key = 'access_token_%s' % who.student.user_id()
+def create_calendar_events(user, event_list):
+    access_token_key = 'access_token_%s' % user.student.user_id()
     gcal_client.auth_token = gdata.gauth.ae_load(access_token_key)
-    results = Event.all().filter("creator =", who.student).order("starttime").fetch(limit=30)
-    batch = []
-    for event in results:
+    for event in event_list:
         InsertSingleEvent(gcal_client, event.title, event.description, event.location, event.starttime, event.endtime,
-                          who.calendar_id)
-        batch.append(event)
-    db.delete(batch)
+                          user.calendar_id)
 
 
 class ImportHandler(RequestHandler):
     @login_required
     def get(self):
-        user_settings = Student.all().filter("student =", users.get_current_user()).order("-lastrun").get()
-        create_calendar_events(user_settings)
+        user = Student.all().filter("student =", users.get_current_user()).order("-lastrun").get()
+        create_calendar_events(user, bseu_schedule.fetch_and_parse_week(user))
         self.session = get_current_session()
-        self.session['import'] = True
+        self.session['messages'] = ["Импорт успешен!"]
         self.redirect('/')
 
 

@@ -1,5 +1,6 @@
 import urllib
 from google.appengine.api import urlfetch
+from models import Event
 import settings
 from utils import schedule_parser
 from utils.decorators import cached
@@ -34,7 +35,13 @@ def fetch_and_show_semester(student):
 
 
 def fetch_and_parse_week(student):
-    return schedule_parser.read(_fetch_raw_html_schedule(student.faculty, student.course, student.group,
+    events = schedule_parser.read(_fetch_raw_html_schedule(student.faculty, student.course, student.group,
                                                          student.form))
+    return [Event(title=event['subject'],
+                  description=event['description'],
+                  location=event['location'],
+                  starttime=event['date']['start'],
+                  endtime=event['date']['end'],
+                  creator=student.student) for event in events]
 
 

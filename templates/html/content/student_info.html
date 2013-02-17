@@ -1,16 +1,16 @@
-<div>
+<div class="container-fluid">
       {% if student.calendar_id %}
           <div class="container-fluid">
               <p>
-                Календарь: {{ student.calendar }}
+                Календарь: {{ student.calendar }} <a href="/import"  class="btn btn-mini btn-primary" type="button"><i class="icon-arrow-down icon-white"></i> Импорт</a>
               </p>
               <p>
-                  Авто-импорт: {% if student.auto %} <span class="badge badge-success">On</span> {% else %} <span class="badge badge-important">Off</span> {% endif %}
+                Авто-импорт: {% if student.auto %} <span class="badge badge-success">On</span> {% else %} <span class="badge badge-important">Off</span> {% endif %}
               </p>
+          </div>
       {% endif %}
           <div class="btn-group">
               <a href="/edit" class="btn btn-info"><i class="icon-edit icon-white"></i> Изменить расписание</a>
-              <a href="/auth" class="btn btn-warning"><i class="icon-calendar icon-white"></i> Дать доступ к календарю</a>
+              <a href="/auth" class="btn btn-warning"><i class="icon-calendar icon-white"></i> доступ к календарю</a>
           </div>
-    </div>
 </div>
