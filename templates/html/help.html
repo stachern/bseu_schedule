@@ -4,3 +4,13 @@
         {% include "content/user_guide.html" %}
     </div>
 {% endblock %}
+{% block navigation_bar %}
+    <ul class="nav">
+        {% block navigation %}
+            <ul class="nav">
+                <li><a href="/">Главная</a></li>
+                <li class="active"><a href="/help">Помощь</a></li>
+            </ul>
+        {% endblock %}
+    </ul>
+{% endblock %}

@@ -11,6 +11,11 @@
         {% endif %}
     {% endblock %}
     <ul class="nav">
-        {% block navigation %}{% endblock %}
+        {% block navigation %}
+            <ul class="nav">
+                <li class="active"><a href="/">Главная</a></li>
+                <li><a href="/help">Помощь</a></li>
+            </ul>
+        {% endblock %}
     </ul>
 </div><!--/.nav-collapse -->
