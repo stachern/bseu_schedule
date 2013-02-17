@@ -1,6 +1,6 @@
 import webapp2
 from auth import AuthRequestInit, AuthRequestCallback
-from events_calendar import ImportHandler, BatchInserter, BatchFetcher
+from events_calendar import ImportHandler, BatchInserter
 from main import ScheduleApi, MainPage, HelpPage, AjaxProxy, EditPage
 from utils.maintenance import MaintenanceTask
 from resolver import ResolveLink
@@ -19,7 +19,6 @@ SITE_URLS = [
 ]
 
 TASKS_URLS = [
-    webapp2.Route(r'/task/fetch_schedules', handler=BatchFetcher),
     webapp2.Route(r'/task/create_events', handler=BatchInserter),
     webapp2.Route(r'/task/maintenance', handler=MaintenanceTask)
 ]

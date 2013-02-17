@@ -71,23 +71,14 @@ class ImportHandler(RequestHandler):
         self.redirect('/')
 
 
-class BatchFetcher(RequestHandler):
-    def get(self):
-        logging.info('starting batch fetch job')
-        results = Student.all().filter("auto =", True).order("-lastrun").fetch(limit=1000)
-        for stud in results:
-            if stud.calendar:
-                logging.info('fetching for %s' % stud.student.email())
-                models.save_event(fetch_and_parse_week(stud), stud.student)
-        self.response.out.write('success')
-
-
 class BatchInserter(RequestHandler):
     def get(self):
         logging.info('starting batch insert job')
-        results = Student.all().filter("auto =", True).order("-lastrun").fetch(limit=1000)
-        for stud in results:
-            if stud.calendar:
-                create_calendar_events(stud)
-                mailer.send(recipient=stud.student.email(), params={'user': stud.student})
+        users = Student.all().filter("auto =", True).order("-lastrun").fetch(limit=1000)
+        for user in users:
+            if user.calendar_id:
+                event_list = bseu_schedule.fetch_and_parse_week(user)
+                if len(event_list) > 0:
+                    create_calendar_events(user, event_list)
+                    mailer.send(recipient=user.student.email(), params={'user': user.student, 'events': event_list})
         self.response.out.write('success')

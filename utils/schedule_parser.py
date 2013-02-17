@@ -22,10 +22,10 @@ def get_semester_start_date():
         #if it's past august - semester would start
         semester_start = year_start + relativedelta(month=9, day=1)
     else:
-        #usually it's the first monday of february for the second semester
-        semester_start = year_start + relativedelta(month=2, weekday=MO(0))
+        #usually it's the first monday of february for the second semester, but we need a day before
+        semester_start = year_start + relativedelta(month=2, weekday=SU(0))
 
-    return semester_start
+    return datetime(semester_start.year, semester_start.month, semester_start.day)
 
 
 def show(raw_html_schedule):
