@@ -11,3 +11,4 @@ ________
     * lxml
     * leaf as lxml wrapper
     * twitter bootstrap for responsive UI
+    * python-dateutil for computing date
