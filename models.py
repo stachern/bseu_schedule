@@ -52,17 +52,6 @@ def add_permalink_and_get_key(group, faculty, form, course):
         return link.id
 
 
-def save_event(event_list, creator):
-    for event in event_list:
-        new_schedule = Event(title=event['subject'],
-                             description=event['description'],
-                             location=event['location'],
-                             starttime=event['date']['start'],
-                             endtime=event['date']['end'],
-                             creator=creator)
-        new_schedule.put()
-
-
 def create_or_update_student(user, request):
     existent = Student.all().filter("student =", user).get()
     if existent:
