@@ -13,9 +13,15 @@
             <div class="span5" id="student-info">
                 <!--student form display-->
 
-                <div class="container-fluid hero-unit">
+                <div class="container-fluid well">
                 {% if action == 'edit' or not user %}
                     {% include "content/student_info_edit.html" %}
+                    {% if calendar %}
+                        {% include "content/calendar_info_edit.html" %}
+                    {% endif %}
+                {% endif %}
+                {% if user and not action == 'edit' %}
+                    {% include "content/student_info.html" %}
                 {% endif %}
                 </div>
                 {% if link_key %}

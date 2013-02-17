@@ -47,12 +47,6 @@ def get_user_context():
                                                          student.faculty,
                                                          student.course,
                                                          student.form)
-        if student.calendar and not session.has_key('calendars'):
-            context['calendar'] = {'saved': {'name': student.calendar}}
-            if session.has_key('import'):
-                context['calendar']['imported'] = True
-                del session['import']
-            context['auto_import'] = student.auto
         # replace to apply table styles
         context['schedule'] = {'week': bseu_schedule.fetch_and_show_week(student),
                                'semester': bseu_schedule.fetch_and_show_semester(student)}

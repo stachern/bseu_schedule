@@ -1,4 +1,3 @@
-import datetime
 from google.appengine.ext import db
 
 
@@ -76,8 +75,6 @@ def create_or_update_student(user, request):
             existent.group = int(request.get('group'))
         if request.get('form'):
             existent.form = int(request.get('form'))
-        if request.get('mode'):
-            existent.auto = bool(int(request.get('mode')))
         if request.get('faculty'):
             existent.faculty = int(request.get('faculty'))
         if request.get('course'):
@@ -87,6 +84,7 @@ def create_or_update_student(user, request):
         if current_calendar_name and current_calendar_id:
             existent.calendar_id = current_calendar_id
             existent.calendar = current_calendar_name
+            existent.auto = bool(request.get('auto', False))
         existent.put()
     else:
         Student(group=int(request.get('group')),

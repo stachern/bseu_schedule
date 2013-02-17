@@ -68,4 +68,4 @@ class AuthRequestCallback(RequestHandler):
             logging.error('error retrieving calendar list: %s' % e)
 
         else:
-            self.redirect('/')
+            self.redirect('/edit')
