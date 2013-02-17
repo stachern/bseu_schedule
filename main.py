@@ -26,7 +26,7 @@ def _get_common_context():
                'faculty_list': settings.BSEU_FACULTY_LIST,
                'user': user}
     if 'messages' in session:
-        context['user_messages'] = session['messages']
+        context['messages'] = session['messages']
         del session['messages']
     if user:
         context['logout_url'] = users.create_logout_url('/')
