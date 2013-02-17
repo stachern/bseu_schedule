@@ -9,6 +9,7 @@ import Cookie
 import logging
 
 from google.appengine.api import urlfetch, users
+from webapp2_extras.appengine.users import login_required
 from handler import RequestHandler
 
 from gaesessions import get_current_session
@@ -147,3 +148,10 @@ class AjaxProxy(RequestHandler):
 class HelpPage(RequestHandler):
     def get(self):
         self.render_to_response('templates/html/help.html', {})
+
+
+class CommentHandler(RequestHandler):
+
+    def post(self):
+        send_comment(self.request.get('comment'))
+        self.response.out.write('Comment is sent!')

@@ -30,4 +30,7 @@
             </div>
         </div>
     </div>
+    {% if user %}
+        {% include "misc/feedback_modal.html" %}
+    {% endif %}
 {% endblock %}

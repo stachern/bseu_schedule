@@ -15,6 +15,9 @@
             <ul class="nav">
                 <li class="active"><a href="/">Главная</a></li>
                 <li><a href="/help">Помощь</a></li>
+                {% if user %}
+                    <li><a href="#feedback_modal" role="button" data-toggle="modal">Вопросы</a></li>
+                {% endif %}
             </ul>
         {% endblock %}
     </ul>
