@@ -77,8 +77,12 @@ class BatchInserter(RequestHandler):
         users = Student.all().filter("auto =", True).order("-lastrun").fetch(limit=1000)
         for user in users:
             if user.calendar_id:
-                event_list = bseu_schedule.fetch_and_parse_week(user)
-                if len(event_list) > 0:
-                    create_calendar_events(user, event_list)
-                    mailer.send(recipient=user.student.email(), params={'user': user.student, 'events': event_list})
+                try:
+                    event_list = bseu_schedule.fetch_and_parse_week(user)
+                except Exception, e:
+                    logging.error(e)
+                else:
+                    if len(event_list) > 0:
+                        create_calendar_events(user, event_list)
+                        mailer.send(recipient=user.student.email(), params={'user': user.student, 'events': event_list})
         self.response.out.write('success')

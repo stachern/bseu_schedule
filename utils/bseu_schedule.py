@@ -36,7 +36,7 @@ def fetch_and_show_semester(student):
 
 def fetch_and_parse_week(student):
     events = schedule_parser.read(_fetch_raw_html_schedule(student.faculty, student.course, student.group,
-                                                         student.form))
+                                                           student.form))
     return [Event(title=event['subject'],
                   description=event['description'],
                   location=event['location'],
