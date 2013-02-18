@@ -50,8 +50,8 @@ def get_user_context():
         context['student'] = student
         context['link_key'] = add_permalink_and_get_key(student.group,
                                                          student.faculty,
-                                                         student.course,
-                                                         student.form)
+                                                         student.form,
+                                                         student.course)
         # replace to apply table styles
         context['schedule'] = {'week': bseu_schedule.fetch_and_show_week(student),
                                'semester': bseu_schedule.fetch_and_show_semester(student)}
