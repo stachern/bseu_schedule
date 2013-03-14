@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/schedule+.iml" filepath="$PROJECT_DIR$/.idea/schedule+.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/bseu_schedule.iml" filepath="$PROJECT_DIR$/.idea/bseu_schedule.iml" />
     </modules>
   </component>
 </project>
