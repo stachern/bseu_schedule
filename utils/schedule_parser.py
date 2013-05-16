@@ -59,7 +59,6 @@ def read(raw_html_schedule):
                 delta = timedelta(weeks=int(current_week) - 1, days=int(current_day))
                 start_date = semester_start_date + delta
                 time_string = tds[0].text.split(u'-')
-                print time_string
                 start_time = timedelta(hours=int(time_string[0].split(u':')[0]),
                                        minutes=int(time_string[0].split(u':')[1]))
                 end_time = timedelta(hours=int(time_string[1].split(u':')[0]),
