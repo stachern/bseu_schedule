@@ -2,7 +2,10 @@
       {% if student.calendar_id %}
           <div class="container-fluid">
               <p>
-                Выбранный календарь: {{ student.calendar }} <a href="/import"  class="btn btn-mini btn-primary pull-right" type="button"><i class="icon-arrow-down icon-white"></i> Импортировать сейчас</a>
+                Выбранный календарь: <b>{{ student.calendar }}</b> <br>
+                  <a href="/import"  class="btn btn-mini btn-primary" type="button">
+                      <i class="icon-arrow-down icon-white"></i> Импортировать сейчас
+                  </a>
               </p>
               <p>
                 Автоматический импорт: {% if student.auto %} <span class="badge badge-success">On</span> {% else %} <span class="badge badge-important">Off</span> {% endif %}
