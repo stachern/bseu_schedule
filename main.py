@@ -3,13 +3,14 @@
 #
 # advanced bseu.by schedule parser
 #
+import os
 
 import urllib
 import Cookie
 import logging
+import datetime
 
 from google.appengine.api import urlfetch, users
-from webapp2_extras.appengine.users import login_required
 from handler import RequestHandler
 
 from gaesessions import get_current_session
@@ -19,12 +20,20 @@ import settings
 from utils import mailer, bseu_schedule
 
 
+def _get_app_version():
+    # get app version
+    app_version, timestamp = os.environ['CURRENT_VERSION_ID'].split('.')
+    app_version_time = datetime.datetime.fromtimestamp(long(timestamp) / pow(2, 28)).strftime("%d/%m/%y")
+    app_version += ' from %s' % app_version_time
+    return app_version
+
 def _get_common_context():
     session = get_current_session()
     user = users.get_current_user()
     context = {'app_url': settings.APP_URL,
                'faculty_list': settings.BSEU_FACULTY_LIST,
-               'user': user}
+               'user': user,
+               'app_version': _get_app_version()}
     if 'messages' in session:
         context['messages'] = session['messages']
         del session['messages']
@@ -50,8 +59,8 @@ def get_user_context():
         context['student'] = student
         context['link_key'] = add_permalink_and_get_key(student.group,
                                                          student.faculty,
-                                                         student.course,
-                                                         student.form)
+                                                         student.form,
+                                                         student.course)
         # replace to apply table styles
         context['schedule'] = {'week': bseu_schedule.fetch_and_show_week(student),
                                'semester': bseu_schedule.fetch_and_show_semester(student)}
