@@ -1,6 +1,7 @@
 import logging
 from handler import RequestHandler
 from models import Student, PermanentLinks
+from gaesessions import delete_expired_sessions
 
 
 def _increment_or_delete(item):
@@ -25,6 +26,8 @@ def increment_course_and_cleanup_graduates():
 class MaintenanceTask(RequestHandler):
     def get(self):
         increment_course_and_cleanup_graduates()
+        while not delete_expired_sessions():
+            pass
 
 
 

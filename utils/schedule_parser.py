@@ -70,7 +70,7 @@ def read(raw_html_schedule):
                 for ltype in [u'Лекции', u'Семинары', u'Занятия в составе подгруппы']:
                     if ltype in tr.xpath('td/span')[0].text:
                         # check if lecturer is listed
-                        if len(tr.xpath('td/em')) > 0:
+                        if tr.xpath('td/em'):
                             schedule_class['description'] += u'(%s)' % tr.xpath('td/em')[0].text
                             break
 
@@ -78,5 +78,5 @@ def read(raw_html_schedule):
             else:
                 schedule[len(schedule) - 1]['location'] += u'\n%s%s - %s' % (tds[0].text,
                                                                             (tr.xpath('td/em')[0].text or u'-'),
-                                                                            tds[1].text)
+                                                                             tds[1].text)
     return schedule

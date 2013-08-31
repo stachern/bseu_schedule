@@ -82,7 +82,7 @@ class BatchInserter(RequestHandler):
                 except Exception, e:
                     logging.error(e)
                 else:
-                    if len(event_list) > 0:
+                    if event_list:
                         create_calendar_events(user, event_list)
                         mailer.send(recipient=user.student.email(), params={'user': user.student, 'events': event_list})
         self.response.out.write('success')

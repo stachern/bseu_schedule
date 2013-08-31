@@ -27,6 +27,7 @@ def _get_app_version():
     app_version += ' from %s' % app_version_time
     return app_version
 
+
 def _get_common_context():
     session = get_current_session()
     user = users.get_current_user()
@@ -58,9 +59,9 @@ def get_user_context():
     if student:
         context['student'] = student
         context['link_key'] = add_permalink_and_get_key(student.group,
-                                                         student.faculty,
-                                                         student.form,
-                                                         student.course)
+                                                        student.faculty,
+                                                        student.form,
+                                                        student.course)
         # replace to apply table styles
         context['schedule'] = {'week': bseu_schedule.fetch_and_show_week(student),
                                'semester': bseu_schedule.fetch_and_show_semester(student)}
@@ -83,7 +84,6 @@ def send_comment(comment_text):
 
 
 class ScheduleApi(RequestHandler):
-
     def get(self):
         context = get_anonymous_context()
         context['link_key'] = add_permalink_and_get_key(form=int(self.request.get('form')),
@@ -160,7 +160,6 @@ class HelpPage(RequestHandler):
 
 
 class CommentHandler(RequestHandler):
-
     def post(self):
         send_comment(self.request.get('comment'))
         self.response.out.write('Comment is sent!')

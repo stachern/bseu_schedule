@@ -43,7 +43,8 @@ class PermanentLinks(db.Model):
 
 
 def add_permalink_and_get_key(group, faculty, form, course):
-    exists = PermanentLinks.all().filter("group =", group).filter("faculty =", faculty).filter("form =", form).filter("course = ", course).get()
+    exists = PermanentLinks.all().filter("group =", group)\
+        .filter("faculty =", faculty).filter("form =", form).filter("course = ", course).get()
     if exists:
         return exists.id
     else:

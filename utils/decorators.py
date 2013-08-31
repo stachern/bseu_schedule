@@ -15,11 +15,11 @@ def decorator_with_args(decorator_to_enhance):
     """
 
     # We use the same trick we did to pass arguments
-    def decorator_maker(*args, **kwargs) :
+    def decorator_maker(*args, **kwargs):
 
         # We create on the fly a decorator that accepts only a function
         # but keeps the passed arguments from the maker .
-        def decorator_wrapper(func) :
+        def decorator_wrapper(func):
 
             # We return the result of the original decorator, which, after all,
             # IS JUST AN ORDINARY FUNCTION (which returns a function).
