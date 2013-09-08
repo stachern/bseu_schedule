@@ -17,8 +17,8 @@ def get_semester_start_date():
     year_start = date(current_date.year, 1, 1)
     if current_date.month >= 8 or current_date.month == 1:
         # if it's past august - semester would start
-        # for some reason in 2013 first day was Aug 31, this shifts one week back
-        semester_start = year_start + relativedelta(month=9, day=1, weeks=-1)
+        # todo: first week fluctuation problem
+        semester_start = year_start + relativedelta(month=9, day=1)
     else:
         # usually it's the first monday of february for the second semester, but we need a day before
         semester_start = year_start + relativedelta(month=2, weekday=SU(0))
