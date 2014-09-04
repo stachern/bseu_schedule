@@ -1,16 +1,16 @@
-Привет,{{ user.nickname }}
+Привет, {{ user.nickname }}
 
 Расписание на следующую неделю успешно импортировано в ваш календарь: {{ user.calendar }}.
 
 Созданные события:
 
     {% for event in events %}
-        ({{ event.starttime }} - {{ event.endtime }}){{ event.title }} - {{  event.description }} [{{ event.location }}]
+        ({{ event.starttime }} - {{ event.endtime }}) {{ event.title }} - {{ event.description }} [{{ event.location }}]
     {% endfor %}
 
 
-В случае обнаружения каких-либо ошибок в расписании, а также для обращения по другим вопросам обращайтесь на stachern@inside.by.
-Чтобы отключить автоматический импорт и отписаться от рассылки - зайди на http://app.inside.by/auth и выбери отключить автоматический импорт.
+В случае обнаружения каких-либо ошибок в расписании, а также для обращения по другим вопросам пишите на stachern@inside.by.
+Чтобы отключить автоматический импорт и отписаться от рассылки необходимо пройти на http://app.inside.by/auth и отключить автоматический импорт.
 
 С уважением,
 app.inside.by
