@@ -68,6 +68,8 @@ def read(raw_html_schedule):
     for tr in get_rows(document):
         schedule_class = {}
         tds = tr.xpath('td')
+        if not tds:
+            continue
         if len(tds) == 1 and tds[0].colspan == '3':
             # one element and colspan usually means a header
             current_week, current_day = parse_header(tds[0])
