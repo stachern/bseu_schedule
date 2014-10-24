@@ -1,24 +1,7 @@
-<div class="nav-collapse collapse">
-    {% block user_block %}
-        {% if user %}
-            <p class="navbar-text pull-right">
-                <a class="navbar-link" href="mailto:{{user.email}}">{{user.nickname}}</a> | <a class="navbar-link" href="{{ logout_url }}">Выйти</a>
-            </p>
-        {% else %}
-            <p class="navbar-text pull-right">
-                <a class="navbar-link" href="{{ login_url }}">Войти через Google</a>
-            </p>
-        {% endif %}
-    {% endblock %}
-    <ul class="nav">
-        {% block navigation %}
-            <ul class="nav">
-                <li class="active"><a href="/">Главная</a></li>
-                <li><a href="/help">Помощь</a></li>
-                {% if user %}
-                    <li><a href="#feedback_modal" role="button" data-toggle="modal">Вопросы</a></li>
-                {% endif %}
-            </ul>
-        {% endblock %}
-    </ul>
-</div><!--/.nav-collapse -->
+<ul class="nav">
+    <li class="active"><a href="/">Главная</a></li>
+    <li><a href="/help">Помощь</a></li>
+    {% if user %}
+        <li><a href="#feedback_modal" role="button" data-toggle="modal">Вопросы</a></li>
+    {% endif %}
+</ul>

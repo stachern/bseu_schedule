@@ -156,7 +156,7 @@ class AjaxProxy(RequestHandler):
 
 class HelpPage(RequestHandler):
     def get(self):
-        self.render_to_response('templates/html/help.html', {})
+        self.render_to_response('templates/html/help.html', get_user_context())
 
 
 class CommentHandler(RequestHandler):
