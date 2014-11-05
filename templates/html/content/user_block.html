@@ -1,0 +1,10 @@
+<ul class="nav pull-right">
+    {% if user %}
+        <li><a class="navbar-link" href="mailto:{{ user.email }}">{{ user.nickname }}</a></li>
+        <li><a class="navbar-link" href="{{ logout_url }}">Выйти</a></li>
+    {% else %}
+        <li>
+            <a class="navbar-link" href="{{ login_url }}">Войти через Google</a>
+        </li>
+    {% endif %}
+</ul>

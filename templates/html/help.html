@@ -1,16 +1,20 @@
 {% extends "base.html" %}
+
 {% block content %}
     <div class="container-fluid">
         {% include "content/user_guide.html" %}
     </div>
+    {% if user %}
+        {% include "misc/feedback_modal.html" %}
+    {% endif %}
 {% endblock %}
+
 {% block navigation_bar %}
     <ul class="nav">
-        {% block navigation %}
-            <ul class="nav">
-                <li><a href="/">Главная</a></li>
-                <li class="active"><a href="/help">Помощь</a></li>
-            </ul>
-        {% endblock %}
+        <li><a href="/">Главная</a></li>
+        <li class="active"><a href="/help">Помощь</a></li>
+        {% if user %}
+            <li><a href="#feedback_modal" role="button" data-toggle="modal">Вопросы</a></li>
+        {% endif %}
     </ul>
 {% endblock %}
