@@ -52,3 +52,14 @@ thead th{
     color: white;
     background-color: graytext;
 }
+
+.heart {
+  color: rgb(255, 121, 198);
+  font-size: 1.4em;
+}
+
+a.developer {
+  border-bottom: 1px solid;
+  color: #333;
+  text-decoration: none;
+}

@@ -91,9 +91,11 @@
                 {% include "misc/yandex_share.html" %}
 
                 <a href="https://github.com/stachern/bseu_schedule" class="btn btn-mini btn-inverse">Проект на GitHub</a>
-                {%block app_info%}
-                    <small class="pull-right">v.{{ app_version }} powered by Google App Engine</small>
-                {%endblock%}
+                {% block app_info %}
+                  <small class="pull-right">
+                    Сделано с <span class="heart">❤</span> <a href="http://bseu.by/fm/" class="developer">Факультетом менеджмента</a>
+                  </span>
+                {% endblock %}
             </p>
         </div>
     </div>
