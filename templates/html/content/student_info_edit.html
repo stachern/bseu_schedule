@@ -2,35 +2,31 @@
     <form id="study_detail" method="POST" action="/">
         <fieldset>
             <legend>Параметры</legend>
-            <label>Факультет</label>
 
-            <select id="faculty" name="faculty" >
-                <option value="-1">Выберите факультет</option>
+            <label for="faculty">Факультет</label>
+            <select id="faculty" name="faculty" required>
+                <option value="">Выберите факультет</option>
                 {% for ft in faculty_list %}
                     <option value="{{ ft.0 }}">{{ ft.1 }}</option>
                 {% endfor %}
             </select>
 
-            <label>Форма обучения</label>
-            <select id="form" name="form" disabled="disabled">
+            <label for="form">Форма обучения</label>
+            <select id="form" name="form" disabled required></select>
 
-            </select>
+            <label for="course">Курс</label>
+            <select id="course" name="course" disabled required></select>
 
-            <label>Курс</label>
-            <select id="course" name="course" disabled="disabled">
-
-            </select>
-
-            <label>Группа</label>
-            <select id="group" name="group" disabled="disabled">
-
-            </select>
+            <label for="group">Группа</label>
+            <select id="group" name="group" disabled required></select>
             <br>
-            {% if student %}
-                <button type="submit" class="btn btn-primary disabled">Сохранить</button>
-            {% else %}
-                <button type="submit" class="btn btn-primary disabled">Показать</button>
-            {% endif %}
+            <button type="submit" class="btn btn-primary disabled" disabled>
+              {% if student %}
+                Сохранить
+              {% else %}
+                Показать
+              {% endif %}
+            </button>
         </fieldset>
     </form>
 </div>

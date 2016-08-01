@@ -24,10 +24,12 @@ function get_schedule_options(){
                  parser(data, $('select#group'));
             });
     }
-    if (this.id=='group'){
-        $('#study_detail button').removeClass('disabled');
-        } else {
-        $('#study_detail button').addClass('disabled');
+    if (this.id === "group" && this.value) {
+        $("#study_detail").find("button")
+                          .removeClass("disabled").prop("disabled", false);
+    } else {
+        $("#study_detail").find("button")
+                          .addClass("disabled").prop("disabled", true);
     }
 }
 
@@ -37,5 +39,5 @@ function parser(data, item){
         $(item).append('<option value="'+this.value+'">'+this.text+'</option>');
         });
     $(item).find('option[selected="selected"]').html('Выберите');
-    $(item).removeAttr('disabled');
+    $(item).prop("disabled", false);
     }
