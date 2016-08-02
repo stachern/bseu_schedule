@@ -568,7 +568,6 @@ select:focus:required:invalid:focus {
   -webkit-background-clip: padding;
   -moz-background-clip: padding;
   background-clip: padding;
-  cursor: default;
   background-color: #f3f3f3;
   background-image: -moz-linear-gradient(top, #f5f5f5, #f1f1f1);
   background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#f5f5f5), to(#f1f1f1));
