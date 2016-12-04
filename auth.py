@@ -24,7 +24,7 @@ class AuthRequestInit(RequestHandler):
         current_user = users.get_current_user()
 
         scopes = API_APP['SCOPES']
-        oauth_callback = 'http://%s/calendar_auth' % self.request.host
+        oauth_callback = 'https://%s/calendar_auth' % self.request.host
         consumer_key = API_APP['CONSUMER_KEY']
         consumer_secret = API_APP['CONSUMER_SECRET']
         request_token = gcal.get_oauth_token(scopes, oauth_callback,

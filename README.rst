@@ -7,15 +7,15 @@ A simple webapp for Google App Engine for the students of Belarus State Economic
 Available at:
 ________
 
-The resource is hosted under app.inside.by_.
+The resource is hosted under bseu-api.appspot.com_.
 
-.. _app.inside.by: http://app.inside.by/
+.. _bseu-api.appspot.com: https://bseu-api.appspot.com/
 
 Used stuff:
 ________
 
-    * webapp2 framework
-    * lxml
-    * leaf as lxml wrapper
-    * twitter bootstrap for responsive UI
-    * python-dateutil for computing date
+* webapp2 framework
+* lxml
+* leaf as lxml wrapper
+* twitter bootstrap for responsive UI
+* python-dateutil for computing date
