@@ -1,3 +1,8 @@
+from google.appengine.ext import vendor
+
+# Add any libraries installed in the "lib" folder
+vendor.add('lib')
+
 from gaesessions import SessionMiddleware
 
 COOKIE_KEY = 'oib23b234,mnasd[f898yhk4jblafiuhd2jk341m2n3vb'
