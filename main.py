@@ -111,12 +111,15 @@ class MainPage(RequestHandler):
             create_or_update_student(user, self.request)
             self.get()
         else:
-            #user is anonymous
-            key = add_permalink_and_get_key(form=int(self.request.get('form')),
-                                            course=int(self.request.get('course')),
-                                            group=int(self.request.get('group')),
-                                            faculty=int(self.request.get('faculty')))
-            self.redirect('link/' + key)
+            try:
+                #user is anonymous
+                key = add_permalink_and_get_key(form=int(self.request.get('form')),
+                                                course=int(self.request.get('course')),
+                                                group=int(self.request.get('group')),
+                                                faculty=int(self.request.get('faculty')))
+                self.redirect('link/' + key)
+            except ValueError:
+                self.redirect('/')
 
 
 class EditPage(RequestHandler):
