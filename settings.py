@@ -34,7 +34,7 @@ SCHEDULE_VIEW_ARGS = 'faculty=%s&group=%s&course=%s&form=%s'
 
 COMMENT_NOTIFICATION_SUBJECT = "New comment for Scheduler+"
 
-COMMENT_NOTIFICATION_RECIPIENT = "Stanislau Charniakou <stas.cherniakov@gmail.com>"
+COMMENT_NOTIFICATION_RECIPIENT = "Dzianis Dashkevich <dskecse@gmail.com>"
 
 API_APP = {
     'APP_NAME': 'scheduler',
