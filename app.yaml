@@ -1,5 +1,5 @@
 application: bseu-api
-version: 2-5-1
+version: 2-5-2
 runtime: python27
 threadsafe: true
 api_version: 1
