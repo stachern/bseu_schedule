@@ -86,14 +86,18 @@ def send_comment(comment_text):
 class ScheduleApi(RequestHandler):
     def get(self):
         context = get_anonymous_context()
-        context['link_key'] = add_permalink_and_get_key(form=int(self.request.get('form')),
-                                                        course=int(self.request.get('course')),
-                                                        group=int(self.request.get('group')),
-                                                        faculty=int(self.request.get('faculty')))
-        links = PermanentLinks.get(context['link_key'])
-        context['schedule'] = {'week': bseu_schedule.fetch_and_show_week(links),
-                               'semester': bseu_schedule.fetch_and_show_semester(links)}
-        self.render_to_response('templates/html/main.html', context)
+        try:
+            context['link_key'] = add_permalink_and_get_key(form=int(self.request.get('form')),
+                                                            course=int(self.request.get('course')),
+                                                            group=int(self.request.get('group')),
+                                                            faculty=int(self.request.get('faculty')))
+        except ValueError:
+            self.redirect('/')
+        else:
+            links = PermanentLinks.get(context['link_key'])
+            context['schedule'] = {'week': bseu_schedule.fetch_and_show_week(links),
+                                   'semester': bseu_schedule.fetch_and_show_semester(links)}
+            self.render_to_response('templates/html/main.html', context)
 
 
 class MainPage(RequestHandler):
