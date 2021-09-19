@@ -1,18 +1,12 @@
-===========
-Schedule+
-===========
+# Schedule+
 
 A simple webapp for Google App Engine for the students of Belarus State Economic University - parses student classes schedule from university website bseu.by and creates events in Google Calendar
 
-Available at:
-________
+## Available at:
 
-The resource is hosted under bseu-api.appspot.com_.
+The resource is hosted under [bseu-api.appspot.com](https://bseu-api.appspot.com/).
 
-.. _bseu-api.appspot.com: https://bseu-api.appspot.com/
-
-Used stuff:
-________
+## Used stuff:
 
 * webapp2 framework
 * lxml
@@ -20,8 +14,7 @@ ________
 * twitter bootstrap for responsive UI
 * python-dateutil for computing date
 
-Deployment:
-________
+## Deployment:
 
 Use `gcloud` instead of the deprecated `appcfg` to deploy the project to the App Engine server:
 
