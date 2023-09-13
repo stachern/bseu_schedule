@@ -24,3 +24,14 @@ You might need to [download Cloud SDK](https://cloud.google.com/sdk/docs/install
 
     gcloud init
     gcloud auth login
+
+## Run Locally:
+
+Use `dev_appserver.py` from Google Cloud SDK to run the app locally, e.g.:
+
+    python3 /usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/bin/dev_appserver.py --application=bseu-api app.yaml
+
+More on this:
+
+* https://cloud.google.com/appengine/docs/legacy/standard/go111/tools/using-local-server
+* https://cloud.google.com/appengine/docs/standard/testing-and-deploying-your-app?tab=python#running_the_local_development_server_3
