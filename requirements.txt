@@ -3,3 +3,4 @@ python-dateutil==1.5
 gdata==2.0.16
 leaf==0.4.2
 git+https://github.com/dskecse/gae-sessions.git#egg=gaesessions
+Flask==1.1.2
