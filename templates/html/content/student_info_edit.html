@@ -7,7 +7,7 @@
             <select id="faculty" name="faculty" required>
                 <option value="">Выберите факультет</option>
                 {% for ft in faculty_list %}
-                    <option value="{{ ft.0 }}">{{ ft.1.decode("utf8") }}</option>
+                    <option value="{{ ft.0 }}">{{ ft.1 }}</option>
                 {% endfor %}
             </select>
 

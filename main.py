@@ -175,7 +175,7 @@ def ajax_proxy():
         dat[field] = args.get(field)
     result = urlfetch.fetch(url=settings.BSEU_SCHEDULE_URL, payload=urllib.urlencode(dat), method=urlfetch.POST,
                             headers=_getHeaders(request.cookie))
-    return render_template_string(result.content.decode("utf-8"))
+    return render_template_string(result.content.decode("utf8"))
 
 @app.route('/help')
 def help():
