@@ -127,7 +127,7 @@ def root():
         if user:
             create_or_update_student(user, request)
             # return render_template("html/main.html", **get_user_context())
-            return redirect('/') # otherwise the schedule won't be updated
+            return redirect('/')  # update user's schedule on form submit
         else:
             try:
                 #user is anonymous
