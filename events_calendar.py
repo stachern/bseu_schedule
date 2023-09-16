@@ -49,7 +49,7 @@ def InsertSingleEvent(calendar_client, title='bseu-api event',
             calendar_client.InsertEvent(event)
         else:
             calendar_client.InsertEvent(event, ucalendar)
-    except Exception, e:
+    except Exception as e:
         logging.error('import was unsuccessful - skipping: %s' % e)
     else:
         logging.debug('import was successful: %s-%s' % (title, content))

@@ -68,7 +68,7 @@ def oauth_callback():
         feed = gcal.GetOwnCalendarsFeed()
         self.session['calendars'] = [{'title': a_calendar.title.text,
                                         'id': a_calendar.GetAlternateLink().href} for a_calendar in feed.entry]
-    except UnicodeEncodeError, e:
+    except UnicodeEncodeError as e:
         logging.error('error retrieving calendar list: %s' % e)
 
     else:

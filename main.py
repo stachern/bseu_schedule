@@ -80,7 +80,7 @@ def get_user_context():
         context['schedule'] = {'week': bseu_schedule.fetch_and_show_week(student),
                                'semester': bseu_schedule.fetch_and_show_semester(student)}
 
-    if session.has_key('calendars'):
+    if 'calendars' in session:
         context['calendar'] = {'picker': session['calendars']}
         del session['calendars']
 

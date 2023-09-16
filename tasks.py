@@ -44,7 +44,7 @@ def create_events():
         if user.calendar_id:
             try:
                 event_list = bseu_schedule.fetch_and_parse_week(user)
-            except Exception, e:
+            except Exception as e:
                 logging.error(e)
             else:
                 if event_list:
