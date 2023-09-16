@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
-
 APP_URL = 'https://bseu-api.appspot.com'
 
 HEADERS = {'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -43,9 +41,3 @@ API_APP = {
     'CONSUMER_SECRET': '23xTWhAeLw87YHaOZZh1aNgT',
     'SCOPES': ['https://www.google.com/calendar/feeds/']
 }
-
-
-ROOT_PATH = os.path.dirname(__file__)
-TEMPLATE_DIRS = (
-    ROOT_PATH + '/templates',
-)
