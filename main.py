@@ -183,7 +183,7 @@ def help():
 
 @app.route('/comment', methods=['POST'])
 def comment():
-    send_comment(request.form.get('comment'))
+    send_comment(request.form['comment'])
     # TODO: show flash instead, as the text below is useless and not seen by the user!
     return render_template_string('Comment is sent!')
 
