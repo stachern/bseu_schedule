@@ -5,7 +5,7 @@ from models import Event
 import settings
 from utils import schedule_parser
 from utils.decorators import cached
-from google.appengine.ext.webapp import template
+from google.appengine.ext.webapp import template  # TODO: Change!
 
 
 @cached(time=360)

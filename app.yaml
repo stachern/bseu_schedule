@@ -17,12 +17,8 @@ handlers:
 - url: /css
   static_dir: static/css
 
-- url: /task/.*
-  script: dispatch.tasks_app
-  login: admin
-
 - url: .*
-  script: dispatch.site_app
+  script: main.app
 
 libraries:
 - name: lxml

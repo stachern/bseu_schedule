@@ -1,5 +1,5 @@
 <div class="well text-center">
-  {% if student.calendar_id %}
+  {% if student and student.calendar_id %}
     <p>
       Выбранный календарь: <b>{{ student.calendar }}</b> <br>
       <a href="/import"  class="btn btn-mini btn-primary" type="button">

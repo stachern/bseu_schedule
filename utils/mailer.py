@@ -2,7 +2,7 @@ import logging
 import os
 
 from google.appengine.api import mail
-from google.appengine.ext.webapp import template
+from google.appengine.ext.webapp import template  # TODO: Change!
 import settings
 
 

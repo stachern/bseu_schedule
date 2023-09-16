@@ -5,9 +5,9 @@
             <div class="span7" id="schedule-display">
                 <!--displaying schedule-->
                 {% if  schedule%}
-                    {% include "content/schedule_table.html" %}
+                    {% include "html/content/schedule_table.html" %}
                 {% else %}
-                    {% include "content/user_guide.html" %}
+                    {% include "html/content/user_guide.html" %}
                 {% endif %}
             </div>
             <div class="span5" id="student-info">
@@ -15,22 +15,22 @@
 
                 <div class="container-fluid">
                   {% if action == 'edit' or not user %}
-                    {% include "content/student_info_edit.html" %}
+                    {% include "html/content/student_info_edit.html" %}
                     {% if calendar %}
-                      {% include "content/calendar_info_edit.html" %}
+                      {% include "html/content/calendar_info_edit.html" %}
                     {% endif %}
                   {% endif %}
                   {% if user and not action == 'edit' %}
-                    {% include "content/student_info.html" %}
+                    {% include "html/content/student_info.html" %}
                   {% endif %}
                 </div>
                 {% if link_key %}
-                  {% include "content/link_info.html" %}
+                  {% include "html/content/link_info.html" %}
                 {% endif %}
             </div>
         </div>
     </div>
     {% if user %}
-        {% include "misc/feedback_modal.html" %}
+        {% include "html/misc/feedback_modal.html" %}
     {% endif %}
 {% endblock %}

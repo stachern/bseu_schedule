@@ -11,14 +11,28 @@ import logging
 import datetime
 
 from google.appengine.api import urlfetch, users
-from handler import RequestHandler
+
+from flask import Flask, render_template, render_template_string, request, redirect
 
 from gaesessions import get_current_session
 from models import Student, PermanentLinks
 from models import add_permalink_and_get_key, create_or_update_student
 import settings
+from markupsafe import escape
 from utils import mailer, bseu_schedule
 
+# Import handlers defined in the corresponding Blueprints
+from auth import auth_handlers
+from events_calendar import import_handlers
+from tasks import task_handlers
+
+app = Flask(__name__)
+
+# Register blueprints, so that any route matching what's defined there
+# will get routed to them
+app.register_blueprint(auth_handlers)
+app.register_blueprint(import_handlers)
+app.register_blueprint(task_handlers)
 
 def _get_app_version():
     # get app version
@@ -83,90 +97,100 @@ def send_comment(comment_text):
                     message=comment_text)
 
 
-class ScheduleApi(RequestHandler):
-    def get(self):
-        context = get_anonymous_context()
-        try:
-            context['link_key'] = add_permalink_and_get_key(form=int(self.request.get('form')),
-                                                            course=int(self.request.get('course')),
-                                                            group=int(self.request.get('group')),
-                                                            faculty=int(self.request.get('faculty')))
-        except ValueError:
-            self.redirect('/')
-        else:
-            links = PermanentLinks.get(context['link_key'])
-            context['schedule'] = {'week': bseu_schedule.fetch_and_show_week(links),
-                                   'semester': bseu_schedule.fetch_and_show_semester(links)}
-            self.render_to_response('templates/html/main.html', context)
+@app.route('/schedule')
+@app.route('/scheduleapi') # legacy
+def schedule():
+    context = get_anonymous_context()
+    try:
+        args = request.args
+        context['link_key'] = add_permalink_and_get_key(form=args.get('form', type=int),
+                                                        course=args.get('course', type=int),
+                                                        group=args.get('group', type=int),
+                                                        faculty=args.get('faculty', type=int))
+    except ValueError:
+        return redirect('/')
+    else:
+        links = PermanentLinks.get(context['link_key'])
+        context['schedule'] = {'week': bseu_schedule.fetch_and_show_week(links),
+                                'semester': bseu_schedule.fetch_and_show_semester(links)}
+        return render_template('html/main.html', **context)
 
 
-class MainPage(RequestHandler):
-    """
-    UI. let user authenticate log in params and sets task. also shows results
-    """
+@app.route('/', methods=['GET', 'POST'])
+def root():
+    if request.method == 'GET':
+        return render_template("html/main.html", **get_user_context())
 
-    def get(self):
-        self.render_to_response("templates/html/main.html", get_user_context())
-
-    def post(self):
+    else:
         """This handles pretty much all the changes"""
         user = users.get_current_user()
         if user:
-            create_or_update_student(user, self.request)
-            self.get()
+            create_or_update_student(user, request)
+            # return render_template("html/main.html", **get_user_context())
+            return redirect('/') # otherwise the schedule won't be updated
         else:
             try:
                 #user is anonymous
-                key = add_permalink_and_get_key(form=int(self.request.get('form')),
-                                                course=int(self.request.get('course')),
-                                                group=int(self.request.get('group')),
-                                                faculty=int(self.request.get('faculty')))
-                self.redirect('link/' + key)
+                form = request.form
+                key = add_permalink_and_get_key(form=form.get('form', type=int),
+                                                course=form.get('course', type=int),
+                                                group=form.get('group', type=int),
+                                                faculty=form.get('faculty', type=int))
+                return redirect('/link/' + key)
             except ValueError:
-                self.redirect('/')
+                return redirect('/')
 
 
-class EditPage(RequestHandler):
-    def get(self):
-        context = get_user_context()
-        context['action'] = 'edit'
-        self.render_to_response("templates/html/main.html", context)
+@app.route('/edit')
+def edit_page():
+    context = get_user_context()
+    context['action'] = 'edit'
+    return render_template("html/main.html", **context)
 
 
-class AjaxProxy(RequestHandler):
-    def _fake(self):
-        self.head = settings.HEADERS
-        self.cookie = Cookie.SimpleCookie()
-        result = urlfetch.fetch(url=settings.BSEU_SCHEDULE_URL, method=urlfetch.GET,
-                                headers=self.head)
-        self.cookie.load(result.headers.get('set-cookie', ''))
+# ajax_proxy related
+def _fake():
+    request.headers = settings.HEADERS
+    request.cookie = Cookie.SimpleCookie()
+    result = urlfetch.fetch(url=settings.BSEU_SCHEDULE_URL, method=urlfetch.GET,
+                            headers=request.headers)
+    request.cookie.load(result.headers.get('set-cookie', ''))
 
-    def get(self):
-        self._fake()
-        dat = {}
-        for field in self.request.arguments():
-            dat[field] = self.request.get(field)
-        result = urlfetch.fetch(url=settings.BSEU_SCHEDULE_URL, payload=urllib.urlencode(dat), method=urlfetch.POST,
-                                headers=self._getHeaders(self.cookie))
-        self.response.out.write(result.content)
+def _makeCookieHeader(cookie):
+    cookieHeader = ""
+    for value in cookie.values():
+        cookieHeader += "%s=%s; " % (value.key, value.value)
+    return cookieHeader
 
-    def _makeCookieHeader(self, cookie):
-        cookieHeader = ""
-        for value in cookie.values():
-            cookieHeader += "%s=%s; " % (value.key, value.value)
-        return cookieHeader
+def _getHeaders(cookie):
+    request.headers['Cookie'] = _makeCookieHeader(cookie)
+    return request.headers
 
-    def _getHeaders(self, cookie):
-        self.head['Cookie'] = self._makeCookieHeader(cookie)
-        return self.head
+@app.route('/proxy')
+def ajax_proxy():
+    _fake()
+    dat = {}
+    args = request.args
+    for field in args:
+        dat[field] = args.get(field)
+    result = urlfetch.fetch(url=settings.BSEU_SCHEDULE_URL, payload=urllib.urlencode(dat), method=urlfetch.POST,
+                            headers=_getHeaders(request.cookie))
+    return render_template_string(result.content.decode("utf-8"))
 
+@app.route('/help')
+def help():
+    return render_template('html/help.html', **get_user_context())
 
-class HelpPage(RequestHandler):
-    def get(self):
-        self.render_to_response('templates/html/help.html', get_user_context())
+@app.route('/comment', methods=['POST'])
+def comment():
+    send_comment(request.form.get('comment'))
+    # TODO: show flash instead, as the text below is useless and not seen by the user!
+    return render_template_string('Comment is sent!')
 
-
-class CommentHandler(RequestHandler):
-    def post(self):
-        send_comment(self.request.get('comment'))
-        self.response.out.write('Comment is sent!')
+@app.route('/link/<key>')
+def resolve_link(key):
+    """This is basically to keep old links valid"""
+    student = PermanentLinks.get(escape(key))
+    return redirect('/schedule?%s' % (settings.SCHEDULE_VIEW_ARGS % (
+        student.faculty, student.group, student.course, student.form
+    )))

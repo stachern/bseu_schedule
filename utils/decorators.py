@@ -1,4 +1,6 @@
+from flask import abort
 from google.appengine.api import memcache
+from google.appengine.api import users
 import functools
 import logging
 
@@ -68,3 +70,56 @@ def memoized(obj):
             cache[args] = obj(*args, **kwargs)
         return cache[args]
     return memoizer
+
+
+def login_required(f):
+    """A decorator to require that a user be logged in to access a URL.
+
+    To use it, decorate your route function like this:
+
+        @app.route('/greet')
+        @login_required
+        def greet():
+            user = users.get_current_user()
+            return render_template_string('Hello, ' + user.nickname())
+
+    We will redirect to a login page if the user is not logged in. We always
+    redirect to the request URL, and Google Accounts only redirects back as a GET
+    request, so this should not be used for POSTs.
+    """
+    @functools.wraps(f)
+    def decorated_function(*args, **kwargs):
+        user = users.get_current_user()
+        if not user:
+            return redirect(users.create_login_url(request.url))
+        else:
+            return f(*args, **kwargs)
+    return decorated_function
+
+
+def admin_required(f):
+    """A decorator to require that a user be an admin for this application
+    to access a URL.
+
+    To use it, decorate your route function like this:
+
+        @app.route('/greet')
+        @admin_required
+        def greet():
+            user = users.get_current_user()
+            return render_template_string('Hello, ' + user.nickname())
+
+    We will redirect to a login page if the user is not logged in. We always
+    redirect to the request URL, and Google Accounts only redirects back as
+    a GET request, so this should not be used for POSTs.
+    """
+    @functools.wraps(f)
+    def decorated_function(*args, **kwargs):
+        user = users.get_current_user()
+        if not user:
+            return redirect(users.create_login_url(request.url))
+        elif not users.is_current_user_admin():
+            return abort(403)
+        else:
+            return f(*args, **kwargs)
+    return decorated_function

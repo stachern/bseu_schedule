@@ -6,10 +6,11 @@ import logging
 
 from google.appengine.ext import db
 from google.appengine.api import users
-from webapp2_extras.appengine.users import login_required
+from utils.decorators import login_required
 from utils.bseu_schedule import fetch_and_parse_week
 
-from handler import RequestHandler
+from flask import Blueprint, redirect
+
 from gaesessions import get_current_session
 from models import Student, Event
 import models
@@ -20,6 +21,7 @@ import gdata.calendar.client
 import atom.data
 from utils import mailer, bseu_schedule
 
+import_handlers = Blueprint('import_handlers', __name__)
 
 gcal_client = gdata.calendar.client.CalendarClient(source=API_APP['APP_NAME'])
 
@@ -60,29 +62,12 @@ def create_calendar_events(user, event_list):
         InsertSingleEvent(gcal_client, event.title, event.description, event.location, event.starttime, event.endtime,
                           user.calendar_id)
 
-
-class ImportHandler(RequestHandler):
-    @login_required
-    def get(self):
-        user = Student.all().filter("student =", users.get_current_user()).order("-lastrun").get()
-        create_calendar_events(user, bseu_schedule.fetch_and_parse_week(user))
-        self.session = get_current_session()
-        self.session['messages'] = ["Импорт успешен!"]
-        self.redirect('/')
-
-
-class BatchInserter(RequestHandler):
-    def get(self):
-        logging.info('starting batch insert job')
-        users = Student.all().filter("auto =", True).order("-lastrun").fetch(limit=1000)
-        for user in users:
-            if user.calendar_id:
-                try:
-                    event_list = bseu_schedule.fetch_and_parse_week(user)
-                except Exception, e:
-                    logging.error(e)
-                else:
-                    if event_list:
-                        create_calendar_events(user, event_list)
-                        mailer.send(recipient=user.student.email(), params={'user': user.student, 'events': event_list})
-        self.response.out.write('success')
+# FYI: Not even working in production
+@import_handlers.route('/import')
+@login_required
+def import_events():
+    user = Student.all().filter("student =", users.get_current_user()).order("-lastrun").get()
+    create_calendar_events(user, bseu_schedule.fetch_and_parse_week(user))
+    self.session = get_current_session()
+    self.session['messages'] = ["Импорт успешен!"]
+    return redirect('/')
