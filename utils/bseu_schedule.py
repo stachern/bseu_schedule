@@ -1,11 +1,11 @@
 import os
 import urllib
 from google.appengine.api import urlfetch
+from flask import render_template
 from models import Event
 import settings
 from utils import schedule_parser
 from utils.decorators import cached
-from google.appengine.ext.webapp import template  # TODO: Change!
 
 
 @cached(time=360)
@@ -31,7 +31,7 @@ def fetch_and_show_week(student):
                                                              student.form)
         ).replace('id="sched"', 'class="table table-bordered table-hover"')
     except IndexError:
-        return template.render(os.path.join(settings.ROOT_PATH, 'templates/html/misc/no_schedule_alert.html'), {})
+        return render_template('html/misc/no_schedule_alert.html')
 
 
 def fetch_and_show_semester(student):
@@ -41,7 +41,7 @@ def fetch_and_show_semester(student):
                                      student.form, settings.BSEU_SEMESTER_PERIOD)
         ).replace('id="sched"', 'class="table table-bordered table-hover"')
     except IndexError:
-        return template.render(os.path.join(settings.ROOT_PATH, 'templates/html/misc/no_schedule_alert.html'), {})
+        return render_template('html/misc/no_schedule_alert.html')
 
 
 def fetch_and_parse_week(student):
