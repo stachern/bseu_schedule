@@ -1,4 +1,3 @@
-import os
 import urllib
 from google.appengine.api import urlfetch
 from flask import render_template
