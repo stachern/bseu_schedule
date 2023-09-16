@@ -8,7 +8,7 @@ The resource is hosted under [bseu-api.appspot.com](https://bseu-api.appspot.com
 
 ## Used stuff:
 
-* webapp2 framework
+* Flask framework
 * lxml
 * leaf as lxml wrapper
 * twitter bootstrap for responsive UI
