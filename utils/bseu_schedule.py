@@ -1,4 +1,4 @@
-import urllib
+from six.moves import urllib
 from google.appengine.api import urlfetch
 from flask import render_template
 from models import Event
@@ -19,7 +19,7 @@ def _fetch_raw_html_schedule(faculty, course, group, form, period=settings.BSEU_
     }
 
     return urlfetch.fetch(url=settings.BSEU_SCHEDULE_URL,
-                          payload=urllib.urlencode(data),
+                          payload=urllib.parse.urlencode(data),
                           method=urlfetch.POST,
                           headers=settings.HEADERS).content
 

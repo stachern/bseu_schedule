@@ -5,8 +5,7 @@
 #
 import os
 
-import urllib
-import Cookie
+from six.moves import urllib, http_cookies
 import logging
 import datetime
 
@@ -37,7 +36,7 @@ app.register_blueprint(task_handlers)
 def _get_app_version():
     # get app version
     app_version, timestamp = os.environ['CURRENT_VERSION_ID'].split('.')
-    app_version_time = datetime.datetime.fromtimestamp(long(timestamp) / pow(2, 28)).strftime("%d/%m/%y")
+    app_version_time = datetime.datetime.fromtimestamp(int(timestamp) // pow(2, 28)).strftime("%d/%m/%y")
     app_version += ' from %s' % app_version_time
     return app_version
 
@@ -151,14 +150,15 @@ def edit_page():
 # ajax_proxy related
 def _fake():
     request.headers = settings.HEADERS
-    request.cookie = Cookie.SimpleCookie()
-    result = urlfetch.fetch(url=settings.BSEU_SCHEDULE_URL, method=urlfetch.GET,
+    request.cookie = http_cookies.SimpleCookie()
+    result = urlfetch.fetch(url=settings.BSEU_SCHEDULE_URL,
+                            method=urlfetch.GET,
                             headers=request.headers)
     request.cookie.load(result.headers.get('set-cookie', ''))
 
 def _makeCookieHeader(cookie):
     cookieHeader = ""
-    for value in cookie.values():
+    for value in list(cookie.values()):
         cookieHeader += "%s=%s; " % (value.key, value.value)
     return cookieHeader
 
@@ -173,7 +173,9 @@ def ajax_proxy():
     args = request.args
     for field in args:
         dat[field] = args.get(field)
-    result = urlfetch.fetch(url=settings.BSEU_SCHEDULE_URL, payload=urllib.urlencode(dat), method=urlfetch.POST,
+    result = urlfetch.fetch(url=settings.BSEU_SCHEDULE_URL,
+                            payload=urllib.parse.urlencode(dat),
+                            method=urlfetch.POST,
                             headers=_getHeaders(request.cookie))
     return render_template_string(result.content.decode("utf8"))
 
