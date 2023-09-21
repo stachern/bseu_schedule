@@ -1,6 +1,6 @@
 cssselect==0.7.1
 python-dateutil==1.5
-gdata==2.0.16
+lxml==3.8.0
 leaf==0.4.2
 git+https://github.com/dskecse/gae-sessions.git#egg=gaesessions
 
@@ -12,3 +12,22 @@ Jinja2==2.10.1
 Flask==1.1.2
 
 six==1.16.0
+
+oauthlib==2.1.0
+requests-oauthlib==1.0.0
+google-auth-oauthlib==0.4.1
+
+certifi==2021.10.8
+pyparsing==2.4.5
+packaging==20.9
+protobuf==3.17.3
+google-api-core==1.31.1
+
+google-auth-httplib2==0.1.0
+google-auth==1.19.1
+
+cachetools==3.1.1
+requests==2.27.1
+httplib2==0.18.1
+setuptools==44.1.1
+google-api-python-client==1.12.11

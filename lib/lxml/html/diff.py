@@ -1,7 +1,3 @@
-# cython: language_level=3
-
-from __future__ import absolute_import
-
 import difflib
 from lxml import etree
 from lxml.html import fragment_fromstring
@@ -251,7 +247,7 @@ def merge_insert(ins_chunks, doc):
     doc.append('</ins> ')
     doc.extend(unbalanced_end)
 
-# These are sentinels to represent the start and end of a <del>
+# These are sentinals to represent the start and end of a <del>
 # segment, until we do the cleanup phase to turn them into proper
 # markup:
 class DEL_START:
@@ -625,7 +621,7 @@ def fixup_chunks(chunks):
                     % (cur_word, result, chunk, chunks))
                 cur_word.post_tags.append(chunk)
         else:
-            assert False
+            assert(0)
 
     if not result:
         return [token('', pre_tags=tag_accum)]
@@ -803,6 +799,7 @@ def _move_el_inside_block(el, tag):
         if _contains_block_level_tag(child):
             break
     else:
+        import sys
         # No block-level tags in any child
         children_tag = etree.Element(tag)
         children_tag.text = el.text

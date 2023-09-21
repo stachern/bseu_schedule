@@ -1,10 +1,8 @@
-from __future__ import absolute_import
-
 import optparse
 import sys
 import re
 import os
-from .diff import htmldiff
+from lxml.html.diff import htmldiff
 
 description = """\
 """
@@ -51,8 +49,9 @@ def main(args=None):
             result += '\n'
         sys.stdout.write(result)
     else:
-        with open(options.output, 'wb') as f:
-            f.write(result)
+        f = open(options.output, 'wb')
+        f.write(result)
+        f.close()
 
 def read_file(filename):
     if filename == '-':
@@ -61,8 +60,9 @@ def read_file(filename):
         raise OSError(
             "Input file %s does not exist" % filename)
     else:
-        with open(filename, 'rb') as f:
-            c = f.read()
+        f = open(filename, 'rb')
+        c = f.read()
+        f.close()
     return c
 
 body_start_re = re.compile(
@@ -71,7 +71,6 @@ body_end_re = re.compile(
     r"</body.*?>", re.I|re.S)
     
 def split_body(html):
-    pre = post = ''
     match = body_start_re.search(html)
     if match:
         pre = html[:match.end()]

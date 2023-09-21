@@ -144,7 +144,6 @@ cdef extern from "libxml/parser.h":
         void* userData
         int* spaceTab
         int spaceMax
-        int nsNr
         bint html
         bint progressive
         int inSubset

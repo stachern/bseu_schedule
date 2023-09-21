@@ -1,22 +1,16 @@
-# cython: language_level=3str
-
 """A cleanup tool for HTML.
 
 Removes unwanted tags and content.  See the `Cleaner` class for
 details.
 """
 
-from __future__ import absolute_import
-
-import copy
 import re
-import sys
+import copy
 try:
     from urlparse import urlsplit
-    from urllib import unquote_plus
 except ImportError:
     # Python 3
-    from urllib.parse import urlsplit, unquote_plus
+    from urllib.parse import urlsplit
 from lxml import etree
 from lxml.html import defs
 from lxml.html import fromstring, XHTML_NAMESPACE
@@ -32,6 +26,11 @@ try:
 except NameError:
     # Python 3
     unicode = str
+try:
+    bytes
+except NameError:
+    # Python < 2.6
+    bytes = str
 try:
     basestring
 except NameError:
@@ -62,36 +61,27 @@ __all__ = ['clean_html', 'clean', 'Cleaner', 'autolink', 'autolink_html',
 
 # This is an IE-specific construct you can have in a stylesheet to
 # run some Javascript:
-_replace_css_javascript = re.compile(
-    r'expression\s*\(.*?\)', re.S|re.I).sub
+_css_javascript_re = re.compile(
+    r'expression\s*\(.*?\)', re.S|re.I)
 
 # Do I have to worry about @\nimport?
-_replace_css_import = re.compile(
-    r'@\s*import', re.I).sub
-
-_looks_like_tag_content = re.compile(
-    r'</?[a-zA-Z]+|\son[a-zA-Z]+\s*=',
-    *((re.ASCII,) if sys.version_info[0] >= 3 else ())).search
+_css_import_re = re.compile(
+    r'@\s*import', re.I)
 
 # All kinds of schemes besides just javascript: that can cause
 # execution:
-_find_image_dataurls = re.compile(
-    r'data:image/(.+);base64,', re.I).findall
-_possibly_malicious_schemes = re.compile(
-    r'(javascript|jscript|livescript|vbscript|data|about|mocha):',
-    re.I).findall
-# SVG images can contain script content
-_is_unsafe_image_type = re.compile(r"(xml|svg)", re.I).search
-
-def _has_javascript_scheme(s):
-    safe_image_urls = 0
-    for image_type in _find_image_dataurls(s):
-        if _is_unsafe_image_type(image_type):
-            return True
-        safe_image_urls += 1
-    return len(_possibly_malicious_schemes(s)) > safe_image_urls
+_is_image_dataurl = re.compile(
+    r'^data:image/.+;base64', re.I).search
+_is_possibly_malicious_scheme = re.compile(
+    r'(?:javascript|jscript|livescript|vbscript|data|about|mocha):',
+    re.I).search
+def _is_javascript_scheme(s):
+    if _is_image_dataurl(s):
+        return None
+    return _is_possibly_malicious_scheme(s)
 
 _substitute_whitespace = re.compile(r'[\s\x00-\x08\x0B\x0C\x0E-\x19]+').sub
+# FIXME: should data: be blocked?
 
 # FIXME: check against: http://msdn2.microsoft.com/en-us/library/ms537512.aspx
 _conditional_comment_re = re.compile(
@@ -222,25 +212,16 @@ class Cleaner(object):
     safe_attrs = defs.safe_attrs
     add_nofollow = False
     host_whitelist = ()
-    whitelist_tags = {'iframe', 'embed'}
+    whitelist_tags = set(['iframe', 'embed'])
 
     def __init__(self, **kw):
-        not_an_attribute = object()
         for name, value in kw.items():
-            default = getattr(self, name, not_an_attribute)
-            if (default is not None and default is not True and default is not False
-                    and not isinstance(default, (frozenset, set, tuple, list))):
+            if not hasattr(self, name):
                 raise TypeError(
                     "Unknown parameter: %s=%r" % (name, value))
             setattr(self, name, value)
         if self.inline_style is None and 'inline_style' not in kw:
             self.inline_style = self.style
-
-        if kw.get("allow_tags"):
-            if kw.get("remove_unknown_tags"):
-                raise ValueError("It does not make sense to pass in both "
-                                 "allow_tags and remove_unknown_tags")
-            self.remove_unknown_tags = False
 
     # Used to lookup the primary URL for a given tag that is up for
     # removal:
@@ -268,12 +249,9 @@ class Cleaner(object):
         """
         Cleans the document.
         """
-        try:
-            getroot = doc.getroot
-        except AttributeError:
-            pass  # Element instance
-        else:
-            doc = getroot()  # ElementTree instance, instead of an element
+        if hasattr(doc, 'getroot'):
+            # ElementTree instance, instead of an element
+            doc = doc.getroot()
         # convert XHTML to HTML
         xhtml_to_html(doc)
         # Normalize a case that IE treats <image> like <img>, and that
@@ -314,8 +292,8 @@ class Cleaner(object):
             if not self.inline_style:
                 for el in _find_styled_elements(doc):
                     old = el.get('style')
-                    new = _replace_css_javascript('', old)
-                    new = _replace_css_import('', new)
+                    new = _css_javascript_re.sub('', old)
+                    new = _css_import_re.sub('', new)
                     if self._has_sneaky_javascript(new):
                         # Something tricky is going on...
                         del el.attrib['style']
@@ -327,15 +305,18 @@ class Cleaner(object):
                         el.drop_tree()
                         continue
                     old = el.text or ''
-                    new = _replace_css_javascript('', old)
+                    new = _css_javascript_re.sub('', old)
                     # The imported CSS can do anything; we just can't allow:
-                    new = _replace_css_import('', new)
+                    new = _css_import_re.sub('', old)
                     if self._has_sneaky_javascript(new):
                         # Something tricky is going on...
                         el.text = '/* deleted */'
                     elif new != old:
                         el.text = new
-        if self.comments:
+        if self.comments or self.processing_instructions:
+            # FIXME: why either?  I feel like there's some obscure reason
+            # because you can put PIs in comments...?  But I've already
+            # forgotten it
             kill_tags.add(etree.Comment)
         if self.processing_instructions:
             kill_tags.add(etree.ProcessingInstruction)
@@ -362,6 +343,7 @@ class Cleaner(object):
             # We should get rid of any <param> tags not inside <applet>;
             # These are not really valid anyway.
             for el in list(doc.iter('param')):
+                found_parent = False
                 parent = el.getparent()
                 while parent is not None and parent.tag not in ('applet', 'object'):
                     parent = parent.getparent()
@@ -419,12 +401,6 @@ class Cleaner(object):
                     "It does not make sense to pass in both allow_tags and remove_unknown_tags")
             allow_tags = set(defs.tags)
         if allow_tags:
-            # make sure we do not remove comments/PIs if users want them (which is rare enough)
-            if not self.comments:
-                allow_tags.add(etree.Comment)
-            if not self.processing_instructions:
-                allow_tags.add(etree.ProcessingInstruction)
-
             bad = []
             for el in doc.iter():
                 if el.tag not in allow_tags:
@@ -456,12 +432,6 @@ class Cleaner(object):
         return False
 
     def allow_element(self, el):
-        """
-        Decide whether an element is configured to be accepted or rejected.
-
-        :param el: an element.
-        :return: true to accept the element or false to reject/discard it.
-        """
         if el.tag not in self._tag_link_attrs:
             return False
         attr = self._tag_link_attrs[el.tag]
@@ -480,20 +450,14 @@ class Cleaner(object):
             return self.allow_embedded_url(el, url)
 
     def allow_embedded_url(self, el, url):
-        """
-        Decide whether a URL that was found in an element's attributes or text
-        if configured to be accepted or rejected.
-
-        :param el: an element.
-        :param url: a URL found on the element.
-        :return: true to accept the URL and false to reject it.
-        """
-        if self.whitelist_tags is not None and el.tag not in self.whitelist_tags:
+        if (self.whitelist_tags is not None
+            and el.tag not in self.whitelist_tags):
             return False
-        parts = urlsplit(url)
-        if parts.scheme not in ('http', 'https'):
+        scheme, netloc, path, query, fragment = urlsplit(url)
+        netloc = netloc.lower().split(':', 1)[0]
+        if scheme not in ('http', 'https'):
             return False
-        if parts.hostname in self.host_whitelist:
+        if netloc in self.host_whitelist:
             return True
         return False
 
@@ -503,9 +467,9 @@ class Cleaner(object):
         doesn't normally see.  We can't allow anything like that, so
         we'll kill any comments that could be conditional.
         """
-        has_conditional_comment = _conditional_comment_re.search
+        bad = []
         self._kill_elements(
-            doc, lambda el: has_conditional_comment(el.text),
+            doc, lambda el: _conditional_comment_re.search(el.text),
             etree.Comment)                
 
     def _kill_elements(self, doc, condition, iterate=None):
@@ -518,8 +482,8 @@ class Cleaner(object):
 
     def _remove_javascript_link(self, link):
         # links like "j a v a s c r i p t:" might be interpreted in IE
-        new = _substitute_whitespace('', unquote_plus(link))
-        if _has_javascript_scheme(new):
+        new = _substitute_whitespace('', link)
+        if _is_javascript_scheme(new):
             # FIXME: should this be None to delete?
             return ''
         return link
@@ -541,17 +505,9 @@ class Cleaner(object):
         style = style.replace('\\', '')
         style = _substitute_whitespace('', style)
         style = style.lower()
-        if _has_javascript_scheme(style):
+        if 'javascript:' in style:
             return True
         if 'expression(' in style:
-            return True
-        if '@import' in style:
-            return True
-        if '</noscript' in style:
-            # e.g. '<noscript><style><a title="</noscript><img src=x onerror=alert(1)>">'
-            return True
-        if _looks_like_tag_content(style):
-            # e.g. '<math><style><img src=x onerror=alert(1)></style></math>'
             return True
         return False
 

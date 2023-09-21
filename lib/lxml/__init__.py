@@ -1,8 +1,5 @@
 # this is a package
 
-__version__ = "4.9.3"
-
-
 def get_include():
     """
     Returns a list of header include paths (for lxml itself, libxml2
