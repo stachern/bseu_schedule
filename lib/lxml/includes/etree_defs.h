@@ -6,8 +6,8 @@
 #ifndef PY_VERSION_HEX
 #  error the development package of Python (header files etc.) is not installed correctly
 #else
-#  if PY_VERSION_HEX < 0x02060000 || PY_MAJOR_VERSION >= 3 && PY_VERSION_HEX < 0x03020000
-#  error this version of lxml requires Python 2.6, 2.7, 3.2 or later
+#  if PY_VERSION_HEX < 0x02070000 || PY_MAJOR_VERSION >= 3 && PY_VERSION_HEX < 0x03050000
+#  error this version of lxml requires Python 2.7, 3.5 or later
 #  endif
 #endif
 
@@ -78,13 +78,6 @@
 #  define PyFile_AsFile(o)                   (NULL)
 #endif
 
-#if PY_VERSION_HEX <= 0x03030000 && !(defined(CYTHON_PEP393_ENABLED) && CYTHON_PEP393_ENABLED)
-  #define PyUnicode_IS_READY(op)    (0)
-  #define PyUnicode_GET_LENGTH(u)   PyUnicode_GET_SIZE(u)
-  #define PyUnicode_KIND(u)         (sizeof(Py_UNICODE))
-  #define PyUnicode_DATA(u)         ((void*)PyUnicode_AS_UNICODE(u))
-#endif
-
 #if IS_PYPY
 #  ifndef PyUnicode_FromFormat
 #    define PyUnicode_FromFormat  PyString_FromFormat
@@ -125,6 +118,16 @@ static PyObject* PyBytes_FromFormat(const char* format, ...) {
 #  define _lx_PySlice_GetIndicesEx(o, l, b, e, s, sl) PySlice_GetIndicesEx(o, l, b, e, s, sl)
 #else
 #  define _lx_PySlice_GetIndicesEx(o, l, b, e, s, sl) PySlice_GetIndicesEx(((PySliceObject*)o), l, b, e, s, sl)
+#endif
+
+#if PY_VERSION_HEX >= 0x030B00A1
+/* Python 3.12 doesn't have wstr Unicode strings any more. */
+#undef PyUnicode_GET_DATA_SIZE
+#define PyUnicode_GET_DATA_SIZE(ustr)  (0)
+#undef PyUnicode_AS_DATA
+#define PyUnicode_AS_DATA(ustr)  (NULL)
+#undef PyUnicode_IS_READY
+#define PyUnicode_IS_READY(ustr)  (1)
 #endif
 
 #ifdef WITHOUT_THREADING
@@ -198,6 +201,8 @@ static PyObject* PyBytes_FromFormat(const char* format, ...) {
 #define exsltStrXpathCtxtRegister(ctxt, prefix)
 #endif
 
+#define LXML_GET_XSLT_ENCODING(result_var, style) XSLT_GET_IMPORT_PTR(result_var, style, encoding)
+
 /* work around MSDEV 6.0 */
 #if (_MSC_VER == 1200) && (WINVER < 0x0500)
 long _ftol( double ); //defined by VC6 C libs
@@ -245,6 +250,12 @@ long _ftol2( double dblSource ) { return _ftol( dblSource ); }
 #define _isString(obj)   (PyUnicode_Check(obj) || PyBytes_Check(obj))
 #endif
 
+#if PY_VERSION_HEX >= 0x03060000
+#define lxml_PyOS_FSPath(obj) (PyOS_FSPath(obj))
+#else
+#define lxml_PyOS_FSPath(obj) (NULL)
+#endif
+
 #define _isElement(c_node) \
         (((c_node)->type == XML_ELEMENT_NODE) || \
          ((c_node)->type == XML_COMMENT_NODE) || \
@@ -260,8 +271,6 @@ long _ftol2( double dblSource ) { return _ftol( dblSource ); }
         (((c_node)->ns == 0) ? 0 : ((c_node)->ns->href))
 
 
-/* PyCapsule was added in Py2.7 */
-#if PY_VERSION_HEX >= 0x02070000
 #include "string.h"
 static void* lxml_unpack_xmldoc_capsule(PyObject* capsule, int* is_owned) {
     xmlDoc *c_doc;
@@ -299,9 +308,6 @@ static void* lxml_unpack_xmldoc_capsule(PyObject* capsule, int* is_owned) {
     }
     return c_doc;
 }
-#else
-#  define lxml_unpack_xmldoc_capsule(capsule, is_owned)  (((capsule) || (is_owned)) ? NULL : NULL)
-#endif
 
 /* Macro pair implementation of a depth first tree walker
  *

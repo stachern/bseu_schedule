@@ -1,3 +1,5 @@
+# cython: language_level=2
+
 #
 # Element generator factory by Fredrik Lundh.
 #
@@ -37,7 +39,10 @@
 The ``E`` Element factory for generating XML documents.
 """
 
+from __future__ import absolute_import
+
 import lxml.etree as ET
+_QName = ET.QName
 
 from functools import partial
 
@@ -143,34 +148,22 @@ class ElementMaker(object):
 
     def __init__(self, typemap=None,
                  namespace=None, nsmap=None, makeelement=None):
-        if namespace is not None:
-            self._namespace = '{' + namespace + '}'
-        else:
-            self._namespace = None
+        self._namespace = '{' + namespace + '}' if namespace is not None else None
+        self._nsmap = dict(nsmap) if nsmap else None
 
-        if nsmap:
-            self._nsmap = dict(nsmap)
-        else:
-            self._nsmap = None
+        assert makeelement is None or callable(makeelement)
+        self._makeelement = makeelement if makeelement is not None else ET.Element
 
-        if makeelement is not None:
-            assert callable(makeelement)
-            self._makeelement = makeelement
-        else:
-            self._makeelement = ET.Element
-
-        # initialize type map for this element factory
-
-        if typemap:
-            typemap = typemap.copy()
-        else:
-            typemap = {}
+        # initialize the default type map functions for this element factory
+        typemap = dict(typemap) if typemap else {}
 
         def add_text(elem, item):
             try:
-                elem[-1].tail = (elem[-1].tail or "") + item
+                last_child = elem[-1]
             except IndexError:
                 elem.text = (elem.text or "") + item
+            else:
+                last_child.tail = (last_child.tail or "") + item
 
         def add_cdata(elem, cdata):
             if elem.text:
@@ -191,31 +184,36 @@ class ElementMaker(object):
                     attrib[k] = v
                 else:
                     attrib[k] = typemap[type(v)](None, v)
+
         if dict not in typemap:
             typemap[dict] = add_dict
 
         self._typemap = typemap
 
     def __call__(self, tag, *children, **attrib):
-        get = self._typemap.get
+        typemap = self._typemap
 
-        if self._namespace is not None and tag[0] != '{':
+        # We'll usually get a 'str', and the compiled type check is very fast.
+        if not isinstance(tag, str) and isinstance(tag, _QName):
+            # A QName is explicitly qualified, do not look at self._namespace.
+            tag = tag.text
+        elif self._namespace is not None and tag[0] != '{':
             tag = self._namespace + tag
         elem = self._makeelement(tag, nsmap=self._nsmap)
         if attrib:
-            get(dict)(elem, attrib)
+            typemap[dict](elem, attrib)
 
         for item in children:
             if callable(item):
                 item = item()
-            t = get(type(item))
+            t = typemap.get(type(item))
             if t is None:
                 if ET.iselement(item):
                     elem.append(item)
                     continue
                 for basetype in type(item).__mro__:
                     # See if the typemap knows of any of this type's bases.
-                    t = get(basetype)
+                    t = typemap.get(basetype)
                     if t is not None:
                         break
                 else:
@@ -223,12 +221,13 @@ class ElementMaker(object):
                                     (type(item).__name__, item))
             v = t(elem, item)
             if v:
-                get(type(v))(elem, v)
+                typemap.get(type(v))(elem, v)
 
         return elem
 
     def __getattr__(self, tag):
         return partial(self, tag)
+
 
 # create factory object
 E = ElementMaker()

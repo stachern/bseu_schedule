@@ -37,7 +37,7 @@ __all__ = [
     'document_fromstring', 'fragment_fromstring', 'fragments_fromstring', 'fromstring',
     'tostring', 'Element', 'defs', 'open_in_browser', 'submit_form',
     'find_rel_links', 'find_class', 'make_links_absolute',
-    'resolve_base_href', 'iterlinks', 'rewrite_links', 'open_in_browser', 'parse']
+    'resolve_base_href', 'iterlinks', 'rewrite_links', 'parse']
 
 
 import copy
@@ -46,7 +46,6 @@ import re
 from functools import partial
 
 try:
-    # while unnecessary, importing from 'collections.abc' is the right way to do it
     from collections.abc import MutableMapping, MutableSet
 except ImportError:
     from collections import MutableMapping, MutableSet
@@ -246,7 +245,7 @@ class HtmlMixin(object):
         creates a 'boolean' attribute without value, e.g. "<form novalidate></form>"
         for ``form.set('novalidate')``.
         """
-        super(HtmlElement, self).set(key, value)
+        super(HtmlMixin, self).set(key, value)
 
     @property
     def classes(self):
@@ -686,21 +685,19 @@ iterlinks = _MethodFunc('iterlinks', copy=False)
 rewrite_links = _MethodFunc('rewrite_links', copy=True)
 
 
-class HtmlComment(etree.CommentBase, HtmlMixin):
+class HtmlComment(HtmlMixin, etree.CommentBase):
     pass
 
 
-class HtmlElement(etree.ElementBase, HtmlMixin):
-    # Override etree.ElementBase.cssselect() and set(), despite the MRO (FIXME: change base order?)
-    cssselect = HtmlMixin.cssselect
-    set = HtmlMixin.set
-
-
-class HtmlProcessingInstruction(etree.PIBase, HtmlMixin):
+class HtmlElement(HtmlMixin, etree.ElementBase):
     pass
 
 
-class HtmlEntity(etree.EntityBase, HtmlMixin):
+class HtmlProcessingInstruction(HtmlMixin, etree.PIBase):
+    pass
+
+
+class HtmlEntity(HtmlMixin, etree.EntityBase):
     pass
 
 
@@ -1177,15 +1174,13 @@ class InputGetter(object):
     ``form.inputs['field_name']``.  If there are a set of checkboxes
     with the same name, they are returned as a list (a `CheckboxGroup`
     which also allows value setting).  Radio inputs are handled
-    similarly.
+    similarly.  Use ``.keys()`` and ``.items()`` to process all fields
+    in this way.
 
     You can also iterate over this to get all input elements.  This
     won't return the same thing as if you get all the names, as
     checkboxes and radio elements are returned individually.
     """
-
-    _name_xpath = etree.XPath(".//*[@name = $name and (local-name(.) = 'select' or local-name(.) = 'input' or local-name(.) = 'textarea')]")
-    _all_xpath = etree.XPath(".//*[local-name() = 'select' or local-name() = 'input' or local-name() = 'textarea']")
 
     def __init__(self, form):
         self.form = form
@@ -1199,40 +1194,64 @@ class InputGetter(object):
     ## a dictionary-like object or list-like object
 
     def __getitem__(self, name):
-        results = self._name_xpath(self.form, name=name)
-        if results:
-            type = results[0].get('type')
-            if type == 'radio' and len(results) > 1:
-                group = RadioGroup(results)
-                group.name = name
-                return group
-            elif type == 'checkbox' and len(results) > 1:
-                group = CheckboxGroup(results)
-                group.name = name
-                return group
-            else:
-                # I don't like throwing away elements like this
-                return results[0]
+        fields = [field for field in self if field.name == name]
+        if not fields:
+            raise KeyError("No input element with the name %r" % name)
+
+        input_type = fields[0].get('type')
+        if input_type == 'radio' and len(fields) > 1:
+            group = RadioGroup(fields)
+            group.name = name
+            return group
+        elif input_type == 'checkbox' and len(fields) > 1:
+            group = CheckboxGroup(fields)
+            group.name = name
+            return group
         else:
-            raise KeyError(
-                "No input element with the name %r" % name)
+            # I don't like throwing away elements like this
+            return fields[0]
 
     def __contains__(self, name):
-        results = self._name_xpath(self.form, name=name)
-        return bool(results)
+        for field in self:
+            if field.name == name:
+                return True
+        return False
 
     def keys(self):
-        names = set()
+        """
+        Returns all unique field names, in document order.
+
+        :return: A list of all unique field names.
+        """
+        names = []
+        seen = {None}
         for el in self:
-            names.add(el.name)
-        if None in names:
-            names.remove(None)
-        return list(names)
+            name = el.name
+            if name not in seen:
+                names.append(name)
+                seen.add(name)
+        return names
+
+    def items(self):
+        """
+        Returns all fields with their names, similar to dict.items().
+
+        :return: A list of (name, field) tuples.
+        """
+        items = []
+        seen = set()
+        for el in self:
+            name = el.name
+            if name not in seen:
+                seen.add(name)
+                items.append((name, self[name]))
+        return items
 
     def __iter__(self):
-        ## FIXME: kind of dumb to turn a list into an iterator, only
-        ## to have it likely turned back into a list again :(
-        return iter(self._all_xpath(self.form))
+        return self.form.iter('select', 'input', 'textarea')
+
+    def __len__(self):
+        return sum(1 for _ in self)
 
 
 class InputMixin(object):
@@ -1323,13 +1342,19 @@ class SelectElement(InputMixin, HtmlElement):
         """
         if self.multiple:
             return MultipleSelectOptions(self)
-        for el in _options_xpath(self):
-            if el.get('selected') is not None:
-                value = el.get('value')
-                if value is None:
-                    value = (el.text or '').strip()
-                return value
-        return None
+        options = _options_xpath(self)
+
+        try:
+            selected_option = next(el for el in reversed(options) if el.get('selected') is not None)
+        except StopIteration:
+            try:
+                selected_option = next(el for el in options if el.get('disabled') is None)
+            except StopIteration:
+                return None
+        value = selected_option.get('value')
+        if value is None:
+            value = (selected_option.text or '').strip()
+        return value
 
     @value.setter
     def value(self, value):
@@ -1782,7 +1807,7 @@ def tostring(doc, pretty_print=False, include_meta_content_type=False,
     regardless of the value of include_meta_content_type any existing
     ``<meta http-equiv="Content-Type" ...>`` tag will be removed
 
-    The ``encoding`` argument controls the output encoding (defauts to
+    The ``encoding`` argument controls the output encoding (defaults to
     ASCII, with &#...; character references for any characters outside
     of ASCII).  Note that you can pass the name ``'unicode'`` as
     ``encoding`` argument to serialise to a Unicode string.
