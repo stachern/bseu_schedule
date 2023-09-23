@@ -12,7 +12,6 @@ The resource is hosted under [bseu-api.appspot.com](https://bseu-api.appspot.com
 * lxml
 * leaf as lxml wrapper
 * twitter bootstrap for responsive UI
-* python-dateutil for computing date
 
 ## Deployment:
 
