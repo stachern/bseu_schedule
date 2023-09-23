@@ -34,3 +34,15 @@ More on this:
 
 * https://cloud.google.com/appengine/docs/legacy/standard/go111/tools/using-local-server
 * https://cloud.google.com/appengine/docs/standard/testing-and-deploying-your-app?tab=python#running_the_local_development_server_3
+
+## Test:
+
+https://pypi.org/project/unittest2/
+https://docs.python.org/2.7/library/unittest.html
+https://web.archive.org/web/20150315073817/http://www.xprogramming.com/testfram.htm
+
+    python -m unittest discover -s ./tests -p parser.py
+
+or
+
+    unit2 discover -s ./tests -p parser.py
