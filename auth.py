@@ -1,75 +1,166 @@
+# coding: utf-8
+
+import os
 import logging
+
+from client_config import ClientConfig
 
 from google.appengine.api import users
 
-from flask import Blueprint, render_template_string, redirect, request
+from flask import Blueprint, redirect, request, url_for
 
-from gaesessions import get_current_session
-from settings import API_APP
-import gdata.gauth
-import gdata.calendar.data
-import gdata.calendar.client
+from gaesessions import get_current_session, set_current_session
+
+import requests
+import requests_toolbelt.adapters.appengine
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import Flow
+from googleapiclient.discovery import build
+
+from oauthlib.oauth2.rfc6749.errors import MissingCodeError
 
 from utils.decorators import login_required
+from utils.helpers import _flash
+
+from settings import OAUTH2_SCOPES
+
+# Use the App Engine Requests adapter. This makes sure that Requests uses URLFetch.
+# https://stackoverflow.com/questions/34683437/typeerror-expected-httplib-message-got-type-instance-when-using-requests/46994316#46994316
+requests_toolbelt.adapters.appengine.monkeypatch()
 
 auth_handlers = Blueprint('auth_handlers', __name__)
 
 logging.getLogger().setLevel(logging.DEBUG)
-gcal = gdata.calendar.client.CalendarClient(source=API_APP['APP_NAME'])
 
 
-# FIXME: Not working in production
 @auth_handlers.route('/auth')
 @login_required
-def auth():
-    """This handler is responsible for fetching an initial OAuth
-    request token and redirecting the user to the approval page."""
+def authorize():
+    """This route is responsible for fetching an initial OAuth 2.0
+    request token and redirecting the user to the OAuth consent screen."""
 
-    current_user = users.get_current_user()
+    # Use ClientConfig to identify the application requesting authorization.
+    # The client ID (from that file) and access scopes are required.
+    flow = Flow.from_client_config(ClientConfig.instance(), scopes=OAUTH2_SCOPES)
 
-    scopes = API_APP['SCOPES']
-    oauth_callback = 'https://%s/calendar_auth' % request.host
-    consumer_key = API_APP['CONSUMER_KEY']
-    consumer_secret = API_APP['CONSUMER_SECRET']
-    request_token = gcal.get_oauth_token(scopes, oauth_callback,
-                                            consumer_key, consumer_secret)
+    # Indicate where the API server will redirect the user after the user completes
+    # the authorization flow. The redirect URI is required. The value must exactly
+    # match one of the authorized redirect URIs for the OAuth 2.0 client, which was
+    # configured in the API Console for the Google OAuth consent screen. If this value
+    # doesn't match an authorized URI, you will get a 'redirect_uri_mismatch' error.
+    flow.redirect_uri = url_for('auth_handlers.oauth2_callback', _external=True)
 
-    request_token_key = 'request_token_%s' % current_user.user_id()
-    gdata.gauth.ae_save(request_token, request_token_key)
+    # Generate URL for request to Google's OAuth 2.0 server.
+    authorization_url, state = flow.authorization_url(
+        # Enable offline access so that you can refresh an access token without
+        # re-prompting the user for permission. Recommended for web server apps.
+        access_type='offline',
+        # Enable incremental authorization. Recommended as a best practice.
+        include_granted_scopes='true')
 
-    approval_page_url = request_token.generate_authorization_url()
-    return render_template_string(
-        '<html><script type="text/javascript">window.location = "%s"</script></html>' % approval_page_url)
+    # Store the state so the callback can verify the auth server response.
+    # This saves user's request token in App Engine datastore.
+    session = get_current_session()
+    session['state'] = state
+    set_current_session(session)
+
+    return redirect(authorization_url)
 
 
-# FIXME: Not working in production
+def credentials_to_dict(credentials):
+    return {'token': credentials.token,
+            'refresh_token': credentials.refresh_token,
+            'token_uri': credentials.token_uri,
+            'client_id': credentials.client_id,
+            'client_secret': credentials.client_secret,
+            'scopes': credentials.scopes}
+
 @auth_handlers.route('/calendar_auth')
 @login_required
-def oauth_callback():
-    """When the user grants access, they are redirected back to this
-    handler where their authorized request token is exchanged for a
-    long-lived access token."""
+def oauth2_callback():
+    """When the user grants access, they are redirected to this route where
+    their authorization code is exchanged for a long-lived access token."""
 
-    current_user = users.get_current_user()
+    # When running locally, disable OAuthlib's HTTPs verification.
+    # This is to get rid of the following error in development:
+    #   InsecureTransportError: (insecure_transport) OAuth 2 MUST utilize https.
+    if os.environ.get('HTTPS') == 'off':
+        os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
-    self.session = get_current_session()
+    session = get_current_session()
 
-    if self.session.is_active():
-        self.session.terminate()
+    state = session['state']
+    flow = Flow.from_client_config(ClientConfig.instance(), scopes=OAUTH2_SCOPES, state=state)
+    flow.redirect_uri = url_for('auth_handlers.oauth2_callback', _external=True)
 
-    request_token_key = 'request_token_%s' % current_user.user_id()
-    request_token = gdata.gauth.ae_load(request_token_key)
-    gdata.gauth.authorize_request_token(request_token, self.request.uri)
-    gcal.auth_token = gcal.get_access_token(request_token)
-    access_token_key = 'access_token_%s' % current_user.user_id()
-    gdata.gauth.ae_save(request_token, access_token_key)
+    # Exchange the authorization code in that response for an access token
+    # Use the authorization server's response to fetch the OAuth 2.0 tokens.
+    authorization_response = request.url
 
     try:
-        feed = gcal.GetOwnCalendarsFeed()
-        self.session['calendars'] = [{'title': a_calendar.title.text,
-                                        'id': a_calendar.GetAlternateLink().href} for a_calendar in feed.entry]
+        flow.fetch_token(authorization_response=authorization_response)
+    except MissingCodeError as e:
+        # When a user clicks Cancel instead of Continue (giving their consent):
+        #   MissingCodeError: (missing_code) Missing code parameter in response.
+        #   http://localhost:8080/calendar_auth?error=access_denied&state=some_refresh_token
+        _flash(u'Не удалось авторизовать приложение.', session)
+        return redirect('/')
+
+    # Store credentials in the session stored in App Engine datastore.
+    credentials = flow.credentials
+    session['credentials'] = credentials_to_dict(credentials)
+    set_current_session(session)
+
+    try:
+        calendar_service = build('calendar', 'v3', credentials=credentials)
+
+        # CalendarList#list API ref:
+        #   https://developers.google.com/calendar/api/v3/reference/calendarList/list
+        calendar_list = calendar_service.calendarList().list().execute()
+        session['calendars'] = [{'title': calendar['summary'],
+                                    'id': calendar['id']} for calendar in calendar_list['items']]
+        set_current_session(session)
     except UnicodeEncodeError as e:
         logging.error('error retrieving calendar list: %s' % e)
 
     else:
         return redirect('/edit')
+
+
+# https://developers.google.com/identity/protocols/oauth2/web-server#example
+@auth_handlers.route('/clear')
+def clear_credentials():
+    session = get_current_session()
+
+    if 'credentials' in session:
+        del session['credentials']
+        _flash('User credentials have been cleared.', session)
+
+    return redirect('/')
+
+
+# https://developers.google.com/identity/protocols/oauth2/web-server#example
+@auth_handlers.route('/revoke')
+def revoke_credentials():
+    """This route revokes permissions that the user has already granted to the application."""
+
+    session = get_current_session()
+
+    if 'credentials' not in session:
+        _flash('You need to authorize tha app before trying to revoke credentials!', session)
+        return redirect('/')
+
+    credentials = Credentials(**session['credentials'])
+
+    # https://developers.google.com/identity/protocols/oauth2/web-server#tokenrevoke
+    revoke = requests.post('https://oauth2.googleapis.com/revoke',
+        params={'token': credentials.token},
+        headers={'content-type': 'application/x-www-form-urlencoded'})
+
+    status_code = getattr(revoke, 'status_code')
+    if status_code == 200:
+        _flash('Credentials successfully revoked!', session)
+    else:
+        _flash('An error occurred!', session)
+
+    return redirect('/')

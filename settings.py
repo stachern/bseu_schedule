@@ -35,9 +35,17 @@ COMMENT_NOTIFICATION_SUBJECT = "New comment for Scheduler+"
 
 COMMENT_NOTIFICATION_RECIPIENT = "Dzianis Dashkevich <dskecse@gmail.com>"
 
-API_APP = {
-    'APP_NAME': 'scheduler',
-    'CONSUMER_KEY': 'app.inside.by',
-    'CONSUMER_SECRET': '23xTWhAeLw87YHaOZZh1aNgT',
-    'SCOPES': ['https://www.google.com/calendar/feeds/']
+# https://developers.google.com/identity/protocols/oauth2/web-server#python
+OAUTH2_SCOPES = [
+    'https://www.googleapis.com/auth/calendar.readonly',
+    'https://www.googleapis.com/auth/calendar.events'
+]
+
+OAUTH2_CONFIG = {
+    'project_id': 'bseu-api',
+    'auth_uri': 'https://accounts.google.com/o/oauth2/auth',
+    'token_uri': 'https://oauth2.googleapis.com/token',
+    'auth_provider_x509_cert_url': 'https://www.googleapis.com/oauth2/v1/certs',
+    'redirect_uris': ['http://localhost:8080/calendar_auth', 'https://bseu-api.appspot.com/calendar_auth'],
+    'javascript_origins': ['https://bseu-api.appspot.com','http://localhost:8080']
 }
