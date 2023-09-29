@@ -19,7 +19,7 @@ google-auth-oauthlib==0.4.1
 certifi==2021.10.8
 pyparsing==2.4.5
 packaging==20.9
-protobuf==3.17.3
+protobuf==3.18.3
 google-api-core==1.31.1
 
 google-auth-httplib2==0.1.0
