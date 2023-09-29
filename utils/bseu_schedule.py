@@ -50,7 +50,4 @@ def fetch_and_parse_week(student):
                   description=event['description'],
                   location=event['location'],
                   starttime=event['date']['start'],
-                  endtime=event['date']['end'],
-                  creator=student.student) for event in events]
-
-
+                  endtime=event['date']['end']) for event in events]
