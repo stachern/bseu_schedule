@@ -32,3 +32,5 @@ setuptools==44.1.1
 google-api-python-client==1.12.11
 
 requests-toolbelt==0.10.1
+
+gae-env==0.1.1

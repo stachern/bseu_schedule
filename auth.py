@@ -1,5 +1,8 @@
 import logging
 
+from client_config import ClientConfig
+ClientConfig.instance()
+
 from google.appengine.api import users
 
 from flask import Blueprint, render_template_string, redirect, request

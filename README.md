@@ -28,9 +28,22 @@ You might need to [download Cloud SDK](https://cloud.google.com/sdk/docs/install
 
 Use `dev_appserver.py` from Google Cloud SDK to run the app locally, e.g.:
 
-    python3 /usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/bin/dev_appserver.py --application=bseu-api app.yaml
+    python3 /usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/bin/dev_appserver.py --application=bseu-api --env_var APPLICATION_ID=dev~bseu-api app.yaml
 
-More on this:
+NOTE the `--env_var APPLICATION_ID=dev~bseu-api` param – this is necessary to open the `Datastore Viewer` located on admin server at http://localhost:8000/datastore.
+
+More on running a dev server locally:
 
 * https://cloud.google.com/appengine/docs/legacy/standard/go111/tools/using-local-server
 * https://cloud.google.com/appengine/docs/standard/testing-and-deploying-your-app?tab=python#running_the_local_development_server_3
+
+### Setting Secrets
+
+In order for the app to run properly, `client_id` and `client_secret` secrets need to be set.
+
+To set them:
+
+* start the app locally
+* head over to the [`Datastore Viewer`](http://localhost:8000/datastore)
+* find already created corresponding `GaeEnvSettings` records
+* and replace their values with those for the only OAuth 2.0 Client ID on the [project's Google Cloud Credentials page](https://console.cloud.google.com/apis/credentials?project=bseu-api)
