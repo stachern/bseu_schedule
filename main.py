@@ -196,3 +196,7 @@ def resolve_link(key):
     return redirect('/schedule?%s' % (settings.SCHEDULE_VIEW_ARGS % (
         student.faculty, student.group, student.course, student.form
     )))
+
+@app.route('/privacy')
+def privacy():
+    return render_template('html/privacy.html', **get_user_context())
