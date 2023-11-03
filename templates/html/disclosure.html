@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="container-fluid">
+    <div class="row-fluid span9">
+      <h3>Раскрытие информации об ограниченном использовании</h3>
+      <p>Использование и передача любому другому приложению информации BSEU Schedule 2.0, полученной от API Google, будет соответствовать <a href="https://developers.google.com/terms/api-services-user-data-policy#additional_requirements_for_specific_api_scopes">Политике сервисов API Google в отношении пользовательских данных</a>, включая требования об их ограниченном использовании.</p>
+      <p>&nbsp;</p>
+    </div>
+
+    <div class="row-fluid span9">
+      <h3>Limited Use Disclosure</h3>
+      <p>BSEU Schedule 2.0' use and transfer to any other app of information received from Google APIs will adhere to <a href="https://developers.google.com/terms/api-services-user-data-policy#additional_requirements_for_specific_api_scopes">Google API Services User Data Policy</a>, including the Limited Use requirements.</p>
+      <p>&nbsp;</p>
+    </div>
+  </div>
+  {% if user %}
+    {% include "html/misc/feedback_modal.html" %}
+  {% endif %}
+{% endblock %}
+
+{% block navigation_bar %}
+  <ul class="nav">
+    <li><a href="/">Главная</a></li>
+    <li><a href="/help">Помощь</a></li>
+    {% if user %}
+      <li><a href="#feedback_modal" role="button" data-toggle="modal">Вопросы</a></li>
+    {% endif %}
+  </ul>
+{% endblock %}

@@ -200,3 +200,7 @@ def resolve_link(key):
 @app.route('/privacy')
 def privacy():
     return render_template('html/privacy.html', **get_user_context())
+
+@app.route('/disclosure')
+def disclosure():
+    return render_template('html/disclosure.html', **get_user_context())
