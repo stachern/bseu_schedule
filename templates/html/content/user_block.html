@@ -4,7 +4,16 @@
         <li><a class="navbar-link" href="{{ logout_url }}">Выйти</a></li>
     {% else %}
         <li>
-            <a class="navbar-link" href="{{ login_url }}">Войти через Google</a>
+            <button type="button" onclick="location.href='{{ login_url }}'" class="gsi-material-button">
+                <div class="gsi-material-button-state"></div>
+                <div class="gsi-material-button-content-wrapper">
+                    <div class="gsi-material-button-icon">
+                        <img src="img/google.svg" style="display: block;">
+                    </div>
+                    <span class="gsi-material-button-contents">Войти через Google</span>
+                    <span style="display: none;">Войти через Google</span>
+                </div>
+            </button>
         </li>
     {% endif %}
 </ul>
