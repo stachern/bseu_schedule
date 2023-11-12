@@ -10,8 +10,22 @@
       Автоматический импорт: {% if student.auto %} <span class="badge badge-success">On</span> {% else %} <span class="badge badge-important">Off</span> {% endif %}
     </p>
   {% endif %}
+  {% if student and not student.calendar_id %}
+    <p>
+      <button type="button" onclick="location.href='/auth'" class="gsi-material-button">
+        <div class="gsi-material-button-state"></div>
+        <div class="gsi-material-button-content-wrapper">
+          <div class="gsi-material-button-icon"><img src="img/calendar.svg"></div>
+          <span class="gsi-material-button-contents">Подключить Google календарь</span>
+          <span style="display: none;">Подключить Google календарь</span>
+        </div>
+      </button>
+    </p>
+  {% endif %}
   <div class="btn-group">
     <a href="/edit" class="btn btn-info"><i class="icon-edit icon-white"></i> Изменить расписание</a>
-    <a href="/auth" class="btn btn-warning"><i class="icon-calendar icon-white"></i> Изменить календарь</a>
+    {% if student and student.calendar_id %}
+      <a href="/auth" class="btn btn-warning"><i class="icon-calendar icon-white"></i> Изменить календарь</a>
+    {% endif %}
   </div>
 </div>
