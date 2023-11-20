@@ -27,6 +27,46 @@ def increment_course_and_cleanup_graduates():
     for link in PermanentLinks.all().run():
         _increment_or_delete(link)
 
+def _delete_inactive(item, counter):
+    if (
+        item.group < 8063
+        or (item.faculty == 7 and item.form == 10 and item.group < 8400)
+        or (item.faculty == 8 and ((item.form == 10 and item.group < 8432) or (item.form == 11 and item.group < 8110) or (item.form == 61 and item.group < 8480)))
+        or (item.faculty == 11 and ((item.form == 10 and item.group < 8450) or (item.form == 11 and item.group < 8115) or (item.form == 61 and item.group < 8460)))
+        or (item.faculty == 12 and item.form == 10 and item.group < 8380)
+        or (item.faculty == 13 and ((item.form == 10 and item.group < 8405) or (item.form == 16 and item.group < 8530) or (item.form == 61 and item.group < 8531)))
+        or (item.faculty == 14 and item.form == 10 and item.group < 8394)
+        or (item.faculty == 129 and ((item.form == 11 and item.group < 9073) or item.group == 108 or item.group == 107))
+        or (item.faculty == 534 and item.form == 10 and item.group < 8446)
+    ):
+        # (item.faculty == 263 and item.form == 10 and item.group < 8063) or
+        # logging.debug("deleting: %s" % item.id)
+        counter['value'] += 1
+        item.delete()
+
+def cleanup_inactive_students_and_links():
+    logging.debug("[cleanup] started")
+
+    logging.debug("[cleanup] checking to see inactive students")
+    inactive_students_count = {'value': 0}
+    for student in Student.all().run():
+        _delete_inactive(student, inactive_students_count)
+    logging.debug("[cleanup] deleted %s inactive students" % inactive_students_count['value'])
+
+    logging.debug("[cleanup] checking to see outdated links")
+    outdated_links_count = {'value': 0}
+    for link in PermanentLinks.all().run():
+        _delete_inactive(link, outdated_links_count)
+    logging.debug("[cleanup] deleted %s outdated links" % outdated_links_count['value'])
+
+@task_handlers.route('/task/cleanup')
+@admin_required
+def cleanup():
+    cleanup_inactive_students_and_links()
+    while not delete_expired_sessions():
+        pass
+    return render_template_string('success')
+
 @task_handlers.route('/task/maintenance')
 @admin_required
 def maintenance():
