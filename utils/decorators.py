@@ -1,4 +1,4 @@
-from flask import abort
+from flask import abort, redirect, request
 from google.appengine.api import memcache
 from google.appengine.api import users
 import functools
@@ -119,6 +119,35 @@ def admin_required(f):
         if not user:
             return redirect(users.create_login_url(request.url))
         elif not users.is_current_user_admin():
+            return abort(403)
+        else:
+            return f(*args, **kwargs)
+    return decorated_function
+
+
+# https://cloud.google.com/appengine/docs/legacy/standard/python/config/cron#securing_urls_for_cron
+def cron_only(f):
+    """A decorator to require that an 'X-Appengine-Cron: true' header present
+    to access a URL.
+
+    To use it, decorate your route function like this:
+
+        @app.route('/handler')
+        @cron_only
+        def handler():
+            ...
+
+    We will render a 403 Forbidden error if there is no 'X-Appengine-Cron: true'
+    header present in the request.
+
+    The 'X-Appengine-Cron' header is set internally by App Engine. If the header
+    is present in an external user request to the app, it is stripped, except
+    for requests from logged in administrators of the application, who are
+    allowed to set the header for testing purposes.
+    """
+    @functools.wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not request.headers.get("X-Appengine-Cron") == "true":
             return abort(403)
         else:
             return f(*args, **kwargs)

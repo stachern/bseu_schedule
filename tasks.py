@@ -6,7 +6,7 @@ from gaesessions import delete_expired_sessions
 from models import Student, PermanentLinks
 
 from utils import mailer, bseu_schedule
-from utils.decorators import admin_required
+from utils.decorators import admin_required, cron_only
 from events_calendar import create_calendar_events
 
 task_handlers = Blueprint('task_handlers', __name__)
@@ -76,7 +76,7 @@ def maintenance():
     return render_template_string('success')
 
 @task_handlers.route('/task/create_events')
-@admin_required
+@cron_only
 def create_events():
     logging.info('starting batch insert job')
     users = Student.all().filter("auto =", True).order("-lastrun").fetch(limit=1000)
@@ -89,5 +89,6 @@ def create_events():
             else:
                 if event_list:
                     create_calendar_events(user, event_list)
-                    mailer.send(recipient=user.student.email(), params={'user': user.student, 'events': event_list})
+                    mailer.send(recipient=user.student.email(),
+                                params={'user': user.student, 'calendar': user.calendar, 'events': event_list})
     return render_template_string('success')
