@@ -147,7 +147,7 @@ def revoke_credentials():
     session = get_current_session()
 
     if 'credentials' not in session:
-        _flash('You need to authorize tha app before trying to revoke credentials!', session)
+        _flash('You need to authorize the app before trying to revoke credentials!', session)
         return redirect('/')
 
     credentials = Credentials(**session['credentials'])
