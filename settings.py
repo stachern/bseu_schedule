@@ -35,8 +35,6 @@ COMMENT_NOTIFICATION_SUBJECT = "New comment for Scheduler+"
 
 COMMENT_NOTIFICATION_RECIPIENT = "Dzianis Dashkevich <dskecse@gmail.com>"
 
-ANNOUNCEMENT_SUBJECT = u"Импорт расписания в календарь снова работает!"
-
 # https://developers.google.com/identity/protocols/oauth2/web-server#python
 OAUTH2_SCOPES = [
     'https://www.googleapis.com/auth/calendar.readonly',

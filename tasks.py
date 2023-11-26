@@ -1,9 +1,7 @@
-from flask import Blueprint, render_template, render_template_string
+from flask import Blueprint, render_template_string
 
 import logging
 from gaesessions import delete_expired_sessions
-
-import settings
 
 from models import Student, PermanentLinks
 
@@ -92,19 +90,4 @@ def create_events():
                 if event_list:
                     create_calendar_events(user, event_list)
                     mailer.send(recipient=user.student.email(), params={'user': user.student, 'events': event_list})
-    return render_template_string('success')
-
-@task_handlers.route('/task/announcement')
-@admin_required
-def announcement():
-    logging.info('[announcement] started')
-    users = Student.all().order("-lastrun").fetch(limit=100)
-    logging.info('[announcement] expected to send an email to %s users' % len(users))
-    for user in users:
-        try:
-            mailer.send(recipient=user.student.email(),
-                    subject=settings.ANNOUNCEMENT_SUBJECT,
-                    message=render_template('email/announcement.html'))
-        except Exception as e:
-            logging.error(e)
     return render_template_string('success')
