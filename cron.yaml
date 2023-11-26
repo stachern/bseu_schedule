@@ -3,4 +3,3 @@ cron:
   url: /task/create_events
   schedule: every sunday 11:00
   timezone: Europe/Minsk
-  target: weekly
