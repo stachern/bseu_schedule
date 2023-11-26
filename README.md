@@ -28,7 +28,7 @@ You might need to [download Cloud SDK](https://cloud.google.com/sdk/docs/install
 
 Any time a `cron.yaml` file gets modified and deployed, make sure to run the following command:
 
-    gloud app deploy cron.yaml
+    gcloud app deploy cron.yaml
 
 To list cron jobs and see their statuses, head over to the [`App Engine Cron Jobs` tab on `Cloud Scheduler`](https://console.cloud.google.com/cloudscheduler?project=bseu-api).
 
