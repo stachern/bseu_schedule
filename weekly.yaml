@@ -1,7 +1,7 @@
 runtime: python27
 threadsafe: true
 api_version: 1
-module: weekly
+service: weekly
 instance_class: B1
 
 basic_scaling:
