@@ -1,11 +1,6 @@
 cron:
-
 - description: weekly import
   url: /task/create_events
   schedule: every sunday 11:00
   timezone: Europe/Minsk
   target: weekly
-
-- description: daily session cleanup
-  url: /cleanup_sessions
-  schedule: every 24 hours
