@@ -89,6 +89,6 @@ def create_events():
             else:
                 if event_list:
                     create_calendar_events(user, event_list)
-                    mailer.send(recipient=user.student.email(),
-                                params={'user': user.student, 'calendar': user.calendar, 'events': event_list})
+                    # mailer.send(recipient=user.student.email(),
+                    #             params={'user': user.student, 'calendar': user.calendar, 'events': event_list})
     return render_template_string('success')
