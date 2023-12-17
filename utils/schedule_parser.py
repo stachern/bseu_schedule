@@ -75,7 +75,13 @@ def read(raw_html_schedule):
 
                 schedule_class['date'] = {'start': current_date + start_time_seconds, 'end': current_date + end_time_seconds}
                 schedule_class['location'] = tds[2].text if len(tds) > 2 else u''  # u'3/332' or u'' (subgroups will be added in an "else" below)
-                schedule_class['description'] = re.findall('\((.+)\)', tr.get('td span.distype').text)[0] # u'Лекции' or u'Практические занятия'
+
+                # u'<span class="distype">(Лекции)</span>' or u'<span class="distype">(<strong>Зачет</strong>)</span>'
+                span = tr.get('td span.distype')
+                if span.get('strong'):
+                    schedule_class['description'] = span.get('strong').text # u'Зачет' or u'Экзамен'
+                else:
+                    schedule_class['description'] = re.findall('\((.+)\)', span.text)[0] # u'Лекции' or u'Практические занятия'
 
                 # check to see if a lecturer is listed
                 if tr.get('td span.teacher'):
