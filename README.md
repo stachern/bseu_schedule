@@ -59,3 +59,16 @@ To set them:
 * head over to the [`Datastore Viewer`](http://localhost:8000/datastore)
 * find already created corresponding `GaeEnvSettings` records
 * and replace their values with those for the only OAuth 2.0 Client ID on the [project's Google Cloud Credentials page](https://console.cloud.google.com/apis/credentials?project=bseu-api)
+
+### Debugging
+
+Should you need to debug anything, make sure to put this line where needed:
+
+```python
+import pdb; pdb.set_trace()
+```
+
+More on Python debugging:
+
+* https://realpython.com/python-debugging-pdb/
+* https://code.visualstudio.com/docs/python/debugging
