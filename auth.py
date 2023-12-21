@@ -37,7 +37,7 @@ logging.getLogger().setLevel(logging.DEBUG)
 @login_required
 def authorize():
     """This route is responsible for fetching an initial OAuth 2.0
-    request token and redirecting the user to the OAuth consent screen."""
+    state and redirecting the user to the OAuth consent screen."""
 
     # Use ClientConfig to identify the application requesting authorization.
     # The client ID (from that file) and access scopes are required.
@@ -59,7 +59,7 @@ def authorize():
         include_granted_scopes='true')
 
     # Store the state so the callback can verify the auth server response.
-    # This saves user's request token in App Engine datastore.
+    # This saves the 'state' value in App Engine datastore.
     session = get_current_session()
     session['state'] = state
     set_current_session(session)
@@ -93,12 +93,9 @@ def oauth2_callback():
     flow = Flow.from_client_config(ClientConfig.instance(), scopes=OAUTH2_SCOPES, state=state)
     flow.redirect_uri = url_for('auth_handlers.oauth2_callback', _external=True)
 
-    # Exchange the authorization code in that response for an access token
-    # Use the authorization server's response to fetch the OAuth 2.0 tokens.
-    authorization_response = request.url
-
     try:
-        flow.fetch_token(authorization_response=authorization_response)
+        # Use authorization server's response to fetch OAuth 2.0 token.
+        flow.fetch_token(authorization_response=request.url)
     except MissingCodeError as e:
         # When a user clicks Cancel instead of Continue (giving their consent):
         #   MissingCodeError: (missing_code) Missing code parameter in response.
@@ -106,8 +103,8 @@ def oauth2_callback():
         _flash(u'Не удалось авторизовать приложение.', session)
         return redirect('/')
 
-    # Store credentials in the session stored in App Engine datastore.
     credentials = flow.credentials
+    # Store credentials in the session stored in App Engine datastore.
     session['credentials'] = credentials_to_dict(credentials)
     set_current_session(session)
 
@@ -150,11 +147,11 @@ def revoke_credentials():
         _flash('You need to authorize the app before trying to revoke credentials!', session)
         return redirect('/')
 
-    credentials = Credentials(**session['credentials'])
+    access_token = session['credentials']['token']
 
     # https://developers.google.com/identity/protocols/oauth2/web-server#tokenrevoke
     revoke = requests.post('https://oauth2.googleapis.com/revoke',
-        params={'token': credentials.token},
+        params={'token': access_token},
         headers={'content-type': 'application/x-www-form-urlencoded'})
 
     status_code = getattr(revoke, 'status_code')
