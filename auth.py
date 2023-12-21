@@ -131,6 +131,7 @@ def clear_credentials():
 
     if 'credentials' in session:
         del session['credentials']
+        del session['state']
         _flash('User credentials have been cleared.', session)
 
     return redirect('/')
