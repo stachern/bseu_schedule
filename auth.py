@@ -9,7 +9,7 @@ from google.appengine.api import users
 
 from flask import Blueprint, redirect, request, url_for
 
-from gaesessions import get_current_session, set_current_session
+from gaesessions import get_current_session
 
 import requests
 import requests_toolbelt.adapters.appengine
@@ -59,10 +59,8 @@ def authorize():
         include_granted_scopes='true')
 
     # Store the state so the callback can verify the auth server response.
-    # This saves the 'state' value in App Engine datastore.
     session = get_current_session()
     session['state'] = state
-    set_current_session(session)
 
     return redirect(authorization_url)
 
@@ -104,9 +102,7 @@ def oauth2_callback():
         return redirect('/')
 
     credentials = flow.credentials
-    # Store credentials in the session stored in App Engine datastore.
     session['credentials'] = credentials_to_dict(credentials)
-    set_current_session(session)
 
     try:
         calendar_service = build('calendar', 'v3', credentials=credentials)
@@ -116,7 +112,6 @@ def oauth2_callback():
         calendar_list = calendar_service.calendarList().list().execute()
         session['calendars'] = [{'title': calendar['summary'],
                                     'id': calendar['id']} for calendar in calendar_list['items']]
-        set_current_session(session)
     except UnicodeEncodeError as e:
         logging.error('error retrieving calendar list: %s' % e)
 

@@ -12,7 +12,7 @@ from utils.helpers import _flash
 
 from flask import Blueprint, redirect, abort
 
-from gaesessions import get_current_session, set_current_session
+from gaesessions import get_current_session
 from models import Student
 
 from google.oauth2.credentials import Credentials
