@@ -54,7 +54,7 @@ More on Python debugging:
 
 Use `gcloud` instead of the deprecated `appcfg` to deploy the project to the App Engine server:
 
-    gcloud app deploy --project bseu-api -v 2-5-2
+    gcloud app deploy --project bseu-api -v 2-9-1
 
 You might need to [download Cloud SDK](https://cloud.google.com/sdk/docs/install) and configure `gcloud` first:
 
