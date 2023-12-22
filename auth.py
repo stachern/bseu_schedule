@@ -87,6 +87,8 @@ def oauth2_callback():
 
     session = get_current_session()
 
+    # Specify the state when creating the flow in the callback so that it can be
+    # verified in the authorization server response.
     state = session['state']
     flow = Flow.from_client_config(ClientConfig.instance(), scopes=OAUTH2_SCOPES, state=state)
     flow.redirect_uri = url_for('auth_handlers.oauth2_callback', _external=True)
