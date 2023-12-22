@@ -35,6 +35,16 @@ def _token_to_blob(token):
     """
     return urllib.quote_plus(token or '')
 
+def _token_from_blob(blob):
+    """Deserializes a token string from the datastore back into a token string.
+
+    Args:
+        blob: string created by _token_to_blob.
+
+    Returns:
+        A new token string deserialized from the blob string.
+    """
+    return urllib.unquote_plus(blob) or None
 
 def _set_token(unique_key, token_str):
     """Saves the serialized auth token in the datastore.
@@ -74,6 +84,28 @@ def _set_token(unique_key, token_str):
         return True
     return None
 
+def _get_token(unique_key):
+    """Searches for a stored token with the desired key.
+
+    Checks memcache and then the datastore if required.
+
+    Args:
+        unique_key: str which uniquely identifies the desired token.
+
+    Returns:
+        A string encoding the token data. Use _token_from_blob to convert back
+        into a usable token string. None if the token was not found in memcache
+        or the datastore.
+    """
+    token_string = memcache.get(unique_key)
+    if token_string is None:
+        # The token wasn't in memcache, so look in the datastore.
+        token = Token.get_by_key_name(unique_key)
+        if token is None:
+            return None
+        return token.t
+    return token_string
+
 
 def ae_save(token, token_key):
     """Stores a token in the App Engine datastore.
@@ -100,3 +132,24 @@ def ae_save(token, token_key):
     #   BadValueError: Property t must be convertible to a Blob instance (Blob() argument should be str instance, not unicode)
     token = token.encode('utf-8')
     return _set_token(token_key, _token_to_blob(token))
+
+
+def ae_load(token_key):
+    """Retrieves a token string from the App Engine datastore.
+
+    This is a convenience method for using the app with App Engine.
+    See also ae_save.
+
+    Args:
+        token_key: str The unique key associated with the desired token when it
+                was saved using ae_save.
+
+    Returns:
+        A token string if there was a token associated with the token_key or None
+        if the key could not be found.
+    """
+    token_string = _get_token(token_key)
+    if token_string is not None:
+        return _token_from_blob(token_string).decode('utf-8')
+    else:
+        return None
