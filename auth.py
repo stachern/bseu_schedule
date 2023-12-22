@@ -21,6 +21,7 @@ from oauthlib.oauth2.rfc6749.errors import MissingCodeError
 
 from utils.decorators import login_required
 from utils.helpers import _flash
+from utils.ae_helpers import ae_save
 
 from settings import OAUTH2_SCOPES
 
@@ -86,6 +87,7 @@ def oauth2_callback():
         os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
     session = get_current_session()
+    current_user = users.get_current_user()
 
     # Specify the state when creating the flow in the callback so that it can be
     # verified in the authorization server response.
@@ -109,6 +111,16 @@ def oauth2_callback():
     # value from credentials in the session before setting.
     session['credentials'] = credentials_to_dict(
         credentials, session.get('credentials', {}).get('refresh_token'))
+
+    # Store user's access and refresh tokens in the App Engine datastore.
+    refresh_token = credentials.refresh_token
+    if refresh_token is not None:
+        refresh_token_key = 'refresh_token_%s' % current_user.user_id()
+        ae_save(refresh_token, refresh_token_key)
+
+    access_token = credentials.token
+    access_token_key = 'access_token_%s' % current_user.user_id()
+    ae_save(access_token, access_token_key)
 
     try:
         calendar_service = build('calendar', 'v3', credentials=credentials)
