@@ -9,6 +9,7 @@ from google.appengine.api import users
 from utils.decorators import login_required
 from utils.bseu_schedule import fetch_and_parse_week
 from utils.helpers import _flash
+from utils.ae_helpers import ae_save
 
 from flask import Blueprint, redirect, abort
 
@@ -62,6 +63,19 @@ def create_calendar_events(user, event_list):
 
     if not 'credentials' in session:
         return redirect('/auth')
+
+    # Store user's access and refresh tokens in the App Engine datastore.
+    # FYI: TEMPORARY SOLUTION!
+    # TODO: Remove once all users' refresh and access tokens are in the datastore!
+    user_id = user.student.user_id()
+    refresh_token = session['credentials'].get('refresh_token')
+    if refresh_token is not None:
+        refresh_token_key = 'refresh_token_%s' % user_id
+        ae_save(refresh_token, refresh_token_key)
+    access_token = session['credentials'].get('token')
+    if access_token is not None:
+        access_token_key = 'access_token_%s' % user_id
+        ae_save(access_token, access_token_key)
 
     # https://developers.google.com/identity/protocols/oauth2/web-server#example
     # Load user credentials from the session stored in App Engine datastore
