@@ -65,9 +65,9 @@ def authorize():
     return redirect(authorization_url)
 
 
-def credentials_to_dict(credentials):
+def credentials_to_dict(credentials, refresh_token):
     return {'token': credentials.token,
-            'refresh_token': credentials.refresh_token,
+            'refresh_token': (credentials.refresh_token or refresh_token),
             'token_uri': credentials.token_uri,
             'client_id': credentials.client_id,
             'client_secret': credentials.client_secret,
@@ -104,7 +104,11 @@ def oauth2_callback():
         return redirect('/')
 
     credentials = flow.credentials
-    session['credentials'] = credentials_to_dict(credentials)
+    # Subsequent calls to oauth2_callback return 'None' as 'refresh_token'
+    # from 'flow.credentials', so make sure to replace it with the existing
+    # value from credentials in the session before setting.
+    session['credentials'] = credentials_to_dict(
+        credentials, session.get('credentials', {}).get('refresh_token'))
 
     try:
         calendar_service = build('calendar', 'v3', credentials=credentials)
