@@ -92,7 +92,7 @@ def get_user_context():
                                                         student.course)
         # replace to apply table styles
         context['schedule'] = {'week': bseu_schedule.fetch_and_show_week(student),
-                               'semester': bseu_schedule.fetch_and_show_semester(student)}
+                           'semester': bseu_schedule.fetch_and_show_semester(student)}
 
     if 'calendars' in session:
         context['calendar'] = {'picker': session['calendars']}

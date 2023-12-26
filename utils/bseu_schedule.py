@@ -1,4 +1,8 @@
 from six.moves import urllib
+from datetime import datetime, timedelta
+from pytz import timezone
+import logging
+
 from google.appengine.api import urlfetch
 from flask import render_template
 from models import Event
@@ -7,8 +11,23 @@ from utils import schedule_parser
 from utils.decorators import cached
 
 
-@cached(time=360)
+def _seconds_till_around_midnight():
+    tz = timezone("Europe/Minsk")
+    midnight = (datetime.now(tz) + timedelta(days=1)).replace(hour=0, minute=2, microsecond=0, second=0)
+    return (midnight - datetime.now(tz)).seconds
+
+def cache_time():
+    """ Cache time should be seconds till 00:02am next day or at least 6min """
+    return max(_seconds_till_around_midnight(), 360)
+
+
+@cached(time=cache_time())
 def _fetch_raw_html_schedule(faculty, course, group, form, period=settings.BSEU_WEEK_PERIOD):
+    """ Fetches raw HTML schedule from the BSEU schedule.
+    Shows the cached schedule most of the time so we don't hit university schedule frequently.
+    This also enables us to show the schedule even when the BSEU schedule is down.
+    Drops the cache at 00:02am daily. """
+
     data = {
         '__act': settings.ACTION_ID,
         'period': period,
@@ -31,6 +50,11 @@ def fetch_and_show_week(student):
         ).replace('id="sched"', 'class="table table-bordered table-hover"')
     except IndexError:
         return render_template('html/misc/no_schedule_alert.html')
+    except urlfetch.DeadlineExceededError as e:
+        # This handles the 500 error when bseu.by is down!
+        # DeadlineExceededError: "Deadline exceeded while waiting for HTTP response from URL: http://bseu.by/schedule"
+        logging.info('[fetch_and_show_week] {0} is currently unresponsive: {1}'.format(settings.BSEU_SCHEDULE_URL, e))
+        return render_template('html/misc/schedule_down_alert.html')
 
 
 def fetch_and_show_semester(student):
@@ -41,6 +65,11 @@ def fetch_and_show_semester(student):
         ).replace('id="sched"', 'class="table table-bordered table-hover"')
     except IndexError:
         return render_template('html/misc/no_schedule_alert.html')
+    except urlfetch.DeadlineExceededError as e:
+        # This handles the 500 error when bseu.by is down!
+        # DeadlineExceededError: "Deadline exceeded while waiting for HTTP response from URL: http://bseu.by/schedule"
+        logging.info('[fetch_and_show_semester] {0} is currently unresponsive: {1}'.format(settings.BSEU_SCHEDULE_URL, e))
+        return render_template('html/misc/schedule_down_alert.html')
 
 
 def fetch_and_parse_week(student):
