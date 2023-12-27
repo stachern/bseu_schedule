@@ -23,7 +23,6 @@ protobuf==3.17.3
 google-api-core==1.31.1
 
 google-auth-httplib2==0.1.0
-google-auth==1.19.1
 
 cachetools==3.1.1
 requests==2.27.1
