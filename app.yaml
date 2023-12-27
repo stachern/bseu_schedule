@@ -19,12 +19,6 @@ handlers:
 - url: .*
   script: main.app
 
-libraries:
-- name: lxml
-  version: latest
-- name: ssl
-  version: 2.7.11
-
 builtins:
 - appstats: on
 
