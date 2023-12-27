@@ -1,6 +1,7 @@
 runtime: python311
 threadsafe: true
 api_version: 1
+app_engine_apis: true # from https://pypi.org/project/appengine-python-standard/
 
 handlers:
 - url: /favicon\.ico
