@@ -122,7 +122,7 @@ def oauth2_callback():
     ae_save(access_token, access_token_key)
 
     try:
-        calendar_service = build('calendar', 'v3', credentials=credentials)
+        calendar_service = build('calendar', 'v3', credentials=credentials, cache_discovery=False)
 
         # CalendarList#list API ref:
         #   https://developers.google.com/calendar/api/v3/reference/calendarList/list
