@@ -82,7 +82,7 @@ def oauth2_callback():
     # When running locally, disable OAuthlib's HTTPs verification.
     # This is to get rid of the following error in development:
     #   InsecureTransportError: (insecure_transport) OAuth 2 MUST utilize https.
-    if os.environ.get('HTTPS') == 'off':
+    if os.environ.get('GAE_ENV') == 'localdev':
         os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
     session = get_current_session()
