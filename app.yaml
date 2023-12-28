@@ -1,6 +1,5 @@
 runtime: python311
 threadsafe: true
-api_version: 1
 app_engine_apis: true # from https://pypi.org/project/appengine-python-standard/
 
 handlers:
@@ -19,9 +18,6 @@ handlers:
 
 - url: .*
   script: main.app
-
-builtins:
-- appstats: on
 
 env_variables:
   DJANGO_SETTINGS_MODULE: 'settings'
