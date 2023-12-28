@@ -4,10 +4,12 @@ A simple webapp for Google App Engine for the students of Belarus State Economic
 
 ## Available at:
 
-The resource is hosted under [bseu-api.appspot.com](https://bseu-api.appspot.com/).
+The resource is located at [bseu-api.appspot.com](https://bseu-api.appspot.com/).
 
 ## Used stuff:
 
+* Google App Engine Gen 2 with [legacy bundled services](https://pypi.org/project/appengine-python-standard/)
+* Python 3.11.6
 * Flask framework
 * lxml
 * leaf as lxml wrapper
@@ -23,7 +25,7 @@ NOTE the `--env_var APPLICATION_ID=dev~bseu-api` param – this is necessary to 
 
 More on running a dev server locally:
 
-* https://cloud.google.com/appengine/docs/legacy/standard/go111/tools/using-local-server
+* https://cloud.google.com/appengine/docs/standard/tools/using-local-server?tab=python
 * https://cloud.google.com/appengine/docs/standard/testing-and-deploying-your-app?tab=python#running_the_local_development_server_3
 
 ### Setting Secrets
@@ -71,4 +73,4 @@ To list cron jobs and see their statuses, head over to the [`App Engine Cron Job
 
 More info on cron jobs:
 
-* https://cloud.google.com/appengine/docs/legacy/standard/python/config/cron#upload-cron
+* https://cloud.google.com/appengine/docs/standard/scheduling-jobs-with-cron-yaml#uploading_cron_jobs
