@@ -17,7 +17,3 @@ handlers:
 
 - url: .*
   script: auto
-
-# https://cloud.google.com/appengine/docs/standard/reference/app-yaml?tab=python#environment_variables
-# env_variables:
-#   DJANGO_SETTINGS_MODULE: 'settings'
