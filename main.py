@@ -7,9 +7,8 @@ import os
 
 from six.moves import urllib, http_cookies
 import logging
-import datetime
 
-from google.appengine.api import urlfetch, users
+from google.appengine.api import urlfetch, users, wrap_wsgi_app
 
 from flask import Flask, render_template, render_template_string, request, redirect
 
@@ -26,7 +25,15 @@ from auth import auth_handlers
 from events_calendar import import_handlers
 from tasks import task_handlers
 
+from utils.decorators import wrap_wsgi_middleware
+from gaesessions import SessionMiddleware
+
+COOKIE_KEY = 'oib23b234,mnasd[f898yhk4jblafiuhd2jk341m2n3vb'
+
 app = Flask(__name__)
+app.wsgi_app = wrap_wsgi_middleware(SessionMiddleware, cookie_key=COOKIE_KEY)(app.wsgi_app)
+# TODO: Include recording.appstats_wsgi_middleware if possible.
+app.wsgi_app = wrap_wsgi_app(app.wsgi_app)
 
 # Register blueprints, so that any route matching what's defined there
 # will get routed to them
