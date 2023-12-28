@@ -85,7 +85,7 @@ def create_calendar_events(user, event_list):
     # After obtaining an access token, your application can use that token to authorize API requests on behalf of a given user account.
     # Use the user-specific authorization credentials to build a service object for the API that you want to call,
     # and then use that object to make authorized API requests.
-    calendar_service = build('calendar', 'v3', credentials=credentials)
+    calendar_service = build('calendar', 'v3', credentials=credentials, cache_discovery=False)
     for event in event_list:
         insert_event(calendar_service, event.title, event.description, event.location, event.starttime, event.endtime,
                         user.calendar_id)

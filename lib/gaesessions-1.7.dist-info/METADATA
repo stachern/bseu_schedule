@@ -1,9 +1,0 @@
-Metadata-Version: 2.1
-Name: gaesessions
-Version: 1.7
-Summary: A sessions library for the Python runtime on Google App Engine
-Author: David Underhill
-Author-email:
-License: Apache License Version 2.0
-Requires-Dist: setuptools
-
