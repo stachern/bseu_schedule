@@ -30,21 +30,21 @@ def _token_to_blob(token):
         token: A token string.
 
     Returns:
-        A string represenging this token. The string can be converted back into
+        A byte string representing this token. It can be converted back into
         an equivalent token string using _token_from_blob.
     """
-    return urllib.quote_plus(token or '')
+    return urllib.parse.quote_plus(token or '').encode('utf-8')
 
 def _token_from_blob(blob):
-    """Deserializes a token string from the datastore back into a token string.
+    """Deserializes a token blob from the datastore back into a token string.
 
     Args:
-        blob: string created by _token_to_blob.
+        blob: byte string (Blob) created by _token_to_blob.
 
     Returns:
-        A new token string deserialized from the blob string.
+        A new token string deserialized from the blob byte string or None.
     """
-    return urllib.unquote_plus(blob) or None
+    return urllib.parse.unquote_plus(blob.decode('utf-8')) or None
 
 def _set_token(unique_key, token_str):
     """Saves the serialized auth token in the datastore.
@@ -127,10 +127,9 @@ def ae_save(token, token_key):
 
                 users.get_current_user().user_id()
     """
-    # Convert unicode string to byte string
+    # _set_token expects 2nd argument to be byte string, not unicode string.
     # Otherwise, _set_token raises:
     #   BadValueError: Property t must be convertible to a Blob instance (Blob() argument should be str instance, not unicode)
-    token = token.encode('utf-8')
     return _set_token(token_key, _token_to_blob(token))
 
 
@@ -150,6 +149,6 @@ def ae_load(token_key):
     """
     token_string = _get_token(token_key)
     if token_string is not None:
-        return _token_from_blob(token_string).decode('utf-8')
+        return _token_from_blob(token_string)
     else:
         return None
