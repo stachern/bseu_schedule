@@ -201,7 +201,7 @@ def ajax_proxy():
 def help():
     return render_template('html/help.html', **get_user_context())
 
-@app.route('/comment', methods=['POST'])
+@app.post('/comment')
 def comment():
     send_comment(request.form['comment'])
     # TODO: show flash instead, as the text below is useless and not seen by the user!

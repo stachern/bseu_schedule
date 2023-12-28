@@ -4,12 +4,9 @@ leaf==0.4.2
 git+https://github.com/dskecse/gae-sessions.git@python3-compat#egg=gaesessions
 
 appengine-python-standard>=1.0.0
-itsdangerous==1.1.0
-click==7.1.2
-werkzeug==1.0.1
-markupsafe==1.1.1
-Jinja2==2.11.3
-Flask==1.1.2
+
+Flask==2.0.0
+werkzeug==2.3.8
 
 six==1.16.0
 
