@@ -42,11 +42,7 @@ app.register_blueprint(import_handlers)
 app.register_blueprint(task_handlers)
 
 def _get_app_version():
-    # get app version
-    app_version, timestamp = os.environ['CURRENT_VERSION_ID'].split('.')
-    app_version_time = datetime.datetime.fromtimestamp(int(timestamp) // pow(2, 28)).strftime("%d/%m/%y")
-    app_version += ' from %s' % app_version_time
-    return app_version
+    return os.environ['GAE_VERSION']
 
 
 def _get_common_context():
