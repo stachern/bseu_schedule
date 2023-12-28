@@ -16,7 +16,7 @@ handlers:
   static_dir: static/css
 
 - url: .*
-  script: main.app
+  script: auto
 
 env_variables:
   DJANGO_SETTINGS_MODULE: 'settings'
