@@ -9,7 +9,7 @@ Flask==3.0.0
 
 six==1.16.0
 
-oauthlib==2.1.0
+oauthlib==3.0.2
 requests-oauthlib==1.0.0
 google-auth-oauthlib==0.4.1
 
