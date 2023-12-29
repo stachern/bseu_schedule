@@ -12,7 +12,6 @@ from flask import Blueprint, redirect, request, url_for
 from gaesessions import get_current_session
 
 import requests
-import requests_toolbelt.adapters.appengine
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 
@@ -24,9 +23,6 @@ from utils.ae_helpers import ae_save
 
 from settings import OAUTH2_SCOPES
 
-# Use the App Engine Requests adapter. This makes sure that Requests uses URLFetch.
-# https://stackoverflow.com/questions/34683437/typeerror-expected-httplib-message-got-type-instance-when-using-requests/46994316#46994316
-requests_toolbelt.adapters.appengine.monkeypatch()
 
 auth_handlers = Blueprint('auth_handlers', __name__)
 
@@ -164,6 +160,7 @@ def revoke_credentials():
 
     # https://developers.google.com/identity/protocols/oauth2/web-server#tokenrevoke
     revoke = requests.post('https://oauth2.googleapis.com/revoke',
+        allow_redirects=False,
         params={'token': access_token},
         headers={'content-type': 'application/x-www-form-urlencoded'})
 
