@@ -18,7 +18,7 @@ requests==2.27.1
 certifi==2023.7.22 # requests dep
 # httplib2==0.22.0
 google-api-python-client==1.12.11
-google-auth-httplib2==0.1.0 # google-api-python-client dep
+google-auth-httplib2==0.2.0 # google-api-python-client dep
 google-api-core==2.15.0 # google-api-python-client dep
 # pyparsing==2.4.7
 # packaging==23.2
