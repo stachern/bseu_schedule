@@ -45,7 +45,14 @@ function parser(data, item){
 $('#study_detail select').change(get_schedule_options);
 
 $('select#calendar').change(function(){
-    $('input#calendar_name').val($('#calendar option:selected').text());
+    let selected_option = $('#calendar option:selected');
+    if (selected_option.val() === '-1') {
+        $('input#calendar_name').removeAttr('value');
+        $('form#calendar_detail').find('button').prop('disabled', true);
+    } else {
+        $('input#calendar_name').val(selected_option.text());
+        $('form#calendar_detail').find('button').prop('disabled', false);
+    }
 });
 
 $('#schedule-tab-bar a').click(function (e) {

@@ -13,9 +13,11 @@
                 <input id="auto" name="auto" type="checkbox" {% if student.auto %}checked="checked" {% endif %}> Автоматический импорт
                 <span class="help-block">Расписание будет импортироваться каждое воскресенье автоматически</span>
             </label>
-            <input id="calendar_name" type="hidden" name="calendar_name" value="{{ student.calendar }}">
-            <br>
-            <button type="submit" class="btn btn-danger">Сохранить</button>
+            {% with calendars = calendar.picker | map(attribute='title') | list %}
+                <input id="calendar_name" type="hidden" name="calendar_name" {% if student.calendar in calendars %}value="{{ student.calendar }}"{% endif %}>
+                <br>
+                <button type="submit" class="btn btn-danger" {% if student.calendar not in calendars %}disabled{% endif %}>Сохранить</button>
+            {% endwith %}
         </fieldset>
     </form>
 </div>
