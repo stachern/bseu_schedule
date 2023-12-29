@@ -9,7 +9,7 @@ Flask==3.0.0
 
 six==1.16.0
 
-requests==2.27.1
+requests==2.31.0
 certifi==2023.7.22 # requests dep
 google-api-python-client==2.111.0
 google-auth>=2.25.2

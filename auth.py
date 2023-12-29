@@ -160,6 +160,7 @@ def revoke_credentials():
 
     # https://developers.google.com/identity/protocols/oauth2/web-server#tokenrevoke
     revoke = requests.post('https://oauth2.googleapis.com/revoke',
+        allow_redirects=False,
         params={'token': access_token},
         headers={'content-type': 'application/x-www-form-urlencoded'})
 
