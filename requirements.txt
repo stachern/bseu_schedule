@@ -13,13 +13,12 @@ oauthlib==2.1.0
 requests-oauthlib==1.0.0
 google-auth-oauthlib==0.4.1
 
-google-auth-httplib2==0.1.0
-
 # cachetools==5.3.2 # google-auth dep
 requests==2.27.1
 certifi==2023.7.22 # requests dep
 # httplib2==0.22.0
 google-api-python-client==1.12.11
+google-auth-httplib2==0.1.0 # google-api-python-client dep
 google-api-core==2.15.0 # google-api-python-client dep
 # pyparsing==2.4.7
 # packaging==23.2
