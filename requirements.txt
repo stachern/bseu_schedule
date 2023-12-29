@@ -15,6 +15,7 @@ requests==2.27.1
 certifi==2023.7.22 # requests dep
 google-api-python-client==2.111.0
 google-auth-httplib2==0.2.0 # google-api-python-client dep
+google-auth>=2.25.2
 
 gae-env==0.1.1
 
