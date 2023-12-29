@@ -16,7 +16,7 @@ google-auth-oauthlib==0.4.1
 certifi==2023.7.22
 # pyparsing==2.4.7
 # packaging==23.2
-google-api-core==2.11.1
+google-api-core==2.15.0
 
 google-auth-httplib2==0.1.0
 
