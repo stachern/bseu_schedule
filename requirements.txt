@@ -23,8 +23,6 @@ google-api-core==2.15.0 # google-api-python-client dep
 # pyparsing==2.4.7
 # packaging==23.2
 
-requests-toolbelt==0.10.1
-
 gae-env==0.1.1
 
 pytz==2023.3.post1
