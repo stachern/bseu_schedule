@@ -15,7 +15,7 @@ google-auth-oauthlib==0.4.1
 
 google-auth-httplib2==0.1.0
 
-cachetools==5.3.2 # google-auth dep
+# cachetools==5.3.2 # google-auth dep
 requests==2.27.1
 certifi==2023.7.22 # requests dep
 # httplib2==0.22.0
