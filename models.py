@@ -1,10 +1,9 @@
 from google.appengine.ext import db
-import six
 
 class Event(object):
 
     def __init__(self, *args, **kwargs):
-        for k, v in six.iteritems(kwargs): # kwargs.items() in Python3
+        for k, v in kwargs.items():
             super(Event, self).__setattr__(k, v)
 
 

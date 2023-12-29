@@ -5,7 +5,8 @@
 #
 import os
 
-from six.moves import urllib, http_cookies
+import urllib
+from http import cookies
 import logging
 
 from google.appengine.api import urlfetch, users, wrap_wsgi_app
@@ -168,7 +169,7 @@ def edit_page():
 # ajax_proxy related
 def _fake():
     request.headers = settings.HEADERS
-    request.cookie = http_cookies.SimpleCookie()
+    request.cookie = cookies.SimpleCookie()
     result = urlfetch.fetch(url=settings.BSEU_SCHEDULE_URL,
                             method=urlfetch.GET,
                             headers=request.headers)
