@@ -9,6 +9,8 @@ from utils import mailer, bseu_schedule
 from utils.decorators import admin_required, cron_only
 from events_calendar import create_calendar_events
 
+from auth import get_user_credentials_from_ae_datastore
+
 task_handlers = Blueprint('task_handlers', __name__)
 
 def _increment_or_delete(item):
@@ -81,14 +83,15 @@ def create_events():
     logging.info('starting batch insert job')
     users = Student.all().filter("auto =", True).order("-lastrun").fetch(limit=1000)
     for user in users:
-        if user.calendar_id:
+        credentials = get_user_credentials_from_ae_datastore(user)
+        if user.calendar_id and credentials:
             try:
                 event_list = bseu_schedule.fetch_and_parse_week(user)
             except Exception as e:
                 logging.error(e)
             else:
                 if event_list:
-                    create_calendar_events(user, event_list)
-                    # mailer.send(recipient=user.student.email(),
-                    #             params={'user': user.student, 'calendar': user.calendar, 'events': event_list})
+                    create_calendar_events(user, credentials, event_list)
+                    mailer.send(recipient=user.student.email(),
+                                params={'user': user.student, 'calendar': user.calendar, 'events': event_list})
     return render_template_string('success')

@@ -9,17 +9,14 @@ from google.appengine.api import users
 from utils.decorators import login_required
 from utils.bseu_schedule import fetch_and_parse_week
 from utils.helpers import _flash
-from utils.ae_helpers import ae_save
+
+from auth import get_user_credentials_from_session
 
 from flask import Blueprint, redirect, abort
 
-from gaesessions import get_current_session
 from models import Student
 
-from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
-
-from settings import OAUTH2_SCOPES
 
 DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S.000Z'
 
@@ -58,28 +55,10 @@ def insert_event(calendar_service, title='bseu-api event',
         logging.debug('import was successful: %s-%s' % (title, description))
 
 
-def create_calendar_events(user, event_list):
-    session = get_current_session()
-
-    if not 'credentials' in session:
-        return redirect('/auth')
-
-    # Store user's access and refresh tokens in the App Engine datastore.
-    # FYI: TEMPORARY SOLUTION!
-    # TODO: Remove once all users' refresh and access tokens are in the datastore!
-    user_id = user.student.user_id()
-    refresh_token = session['credentials'].get('refresh_token')
-    if refresh_token is not None:
-        refresh_token_key = 'refresh_token_%s' % user_id
-        ae_save(refresh_token, refresh_token_key)
-    access_token = session['credentials'].get('token')
-    if access_token is not None:
-        access_token_key = 'access_token_%s' % user_id
-        ae_save(access_token, access_token_key)
-
-    # https://developers.google.com/identity/protocols/oauth2/web-server#example
-    # Load user credentials from the session stored in App Engine datastore
-    credentials = Credentials(**session['credentials'])
+def create_calendar_events(user, credentials, event_list):
+    if credentials is None:
+        logging.info('[create_calendar_events] no credentials provided for user %s - skipping' % user.student.email())
+        return
 
     # https://developers.google.com/identity/protocols/oauth2/web-server#callinganapi
     # After obtaining an access token, your application can use that token to authorize API requests on behalf of a given user account.
@@ -95,6 +74,7 @@ def create_calendar_events(user, event_list):
 @login_required
 def import_events():
     user = Student.all().filter("student =", users.get_current_user()).order("-lastrun").get()
-    create_calendar_events(user, fetch_and_parse_week(user))
+    credentials = get_user_credentials_from_session(user)
+    create_calendar_events(user, credentials, fetch_and_parse_week(user))
     _flash(u'Расписание успешно добавлено в календарь!')
     return redirect('/')

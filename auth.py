@@ -14,14 +14,15 @@ from gaesessions import get_current_session
 import requests
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
+from google.oauth2.credentials import Credentials
 
 from oauthlib.oauth2.rfc6749.errors import MissingCodeError
 
 from utils.decorators import login_required
 from utils.helpers import _flash
-from utils.ae_helpers import ae_save
+from utils.ae_helpers import ae_save, ae_load
 
-from settings import OAUTH2_SCOPES
+from settings import OAUTH2_CONFIG, OAUTH2_SCOPES
 
 
 auth_handlers = Blueprint('auth_handlers', __name__)
@@ -171,3 +172,51 @@ def revoke_credentials():
         _flash('An error occurred!', session)
 
     return redirect('/')
+
+
+def get_user_credentials_from_session(user):
+    session = get_current_session()
+
+    if not 'credentials' in session:
+        return redirect('/auth')
+
+    # Store user's access and refresh tokens in the App Engine datastore.
+    # FYI: TEMPORARY SOLUTION!
+    # TODO: Remove once all users' refresh and access tokens are in the datastore!
+    user_id = user.student.user_id()
+    refresh_token = session['credentials'].get('refresh_token')
+    if refresh_token is not None:
+        refresh_token_key = 'refresh_token_%s' % user_id
+        ae_save(refresh_token, refresh_token_key)
+    access_token = session['credentials'].get('token')
+    if access_token is not None:
+        access_token_key = 'access_token_%s' % user_id
+        ae_save(access_token, access_token_key)
+
+    # https://developers.google.com/identity/protocols/oauth2/web-server#example
+    # Load user credentials from the session stored in App Engine datastore
+    return Credentials(**session['credentials'])
+
+def get_user_credentials_from_ae_datastore(user):
+    user_id = user.student.user_id()
+    access_token_key = 'access_token_%s' % user_id
+    access_token = ae_load(access_token_key)
+    if access_token is None:
+        logging.info('[get_user_credentials_from_ae_datastore] no access token for user %s - skipping' % user_id)
+        return
+
+    refresh_token_key = 'refresh_token_%s' % user_id
+    refresh_token = ae_load(refresh_token_key)
+    if refresh_token is None:
+        logging.info('[get_user_credentials_from_ae_datastore] no refresh token for user %s - skipping' % user_id)
+        return
+
+    # https://developers.google.com/identity/protocols/oauth2/web-server#example
+    config = ClientConfig.instance()['web']
+    return Credentials(
+        token=access_token,
+        refresh_token=refresh_token,
+        token_uri=OAUTH2_CONFIG['token_uri'],
+        scopes=OAUTH2_SCOPES,
+        client_id=config['client_id'],
+        client_secret=config['client_secret'])
