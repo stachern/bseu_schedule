@@ -1,4 +1,6 @@
-import logging
+from utils.logger import setup_logging
+setup_logging()
+from utils.logger import logging
 
 from google.appengine.api import mail
 from flask import render_template

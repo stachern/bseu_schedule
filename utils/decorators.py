@@ -2,7 +2,10 @@ from flask import abort, redirect, request
 from google.appengine.api import memcache
 from google.appengine.api import users
 import functools
-import logging
+
+from utils.logger import setup_logging
+setup_logging()
+from utils.logger import logging
 
 
 def decorator_with_args(decorator_to_enhance):

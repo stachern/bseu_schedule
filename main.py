@@ -7,7 +7,10 @@ import os
 
 import urllib
 from http import cookies
-import logging
+
+from utils.logger import setup_logging
+setup_logging()
+from utils.logger import logging
 
 from google.appengine.api import urlfetch, users, wrap_wsgi_app
 

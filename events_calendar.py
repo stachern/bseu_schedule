@@ -2,7 +2,10 @@
 # -*- coding: utf-8 -*-
 
 from datetime import timedelta, time
-import logging
+
+from utils.logger import setup_logging
+setup_logging()
+from utils.logger import logging
 
 from google.appengine.ext import db
 from google.appengine.api import users
