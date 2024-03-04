@@ -1,9 +1,6 @@
 from flask import Blueprint, render_template_string
 
-from utils.logger import setup_logging
-setup_logging()
-from utils.logger import logging
-
+import logging
 from gaesessions import delete_expired_sessions
 
 from models import Student, PermanentLinks

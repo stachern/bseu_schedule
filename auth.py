@@ -1,10 +1,7 @@
 # coding: utf-8
 
 import os
-
-from utils.logger import setup_logging
-setup_logging()
-from utils.logger import logging
+import logging
 
 from client_config import ClientConfig
 

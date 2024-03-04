@@ -1,10 +1,7 @@
 import urllib
 from datetime import datetime, timedelta
 from pytz import timezone
-
-from utils.logger import setup_logging
-setup_logging()
-from utils.logger import logging
+import logging
 
 from google.appengine.api import urlfetch
 from flask import render_template
