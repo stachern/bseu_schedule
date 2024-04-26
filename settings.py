@@ -33,7 +33,7 @@ SCHEDULE_VIEW_ARGS = 'faculty=%s&group=%s&course=%s&form=%s'
 
 COMMENT_NOTIFICATION_SUBJECT = "New comment for Scheduler+"
 
-COMMENT_NOTIFICATION_RECIPIENT = "Dzianis Dashkevich <dskecse@gmail.com>"
+COMMENT_NOTIFICATION_RECIPIENT = "Dennis Dashkevich <dskecse@gmail.com>"
 
 # https://developers.google.com/identity/protocols/oauth2/web-server#python
 OAUTH2_SCOPES = [
