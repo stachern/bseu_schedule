@@ -6,7 +6,7 @@ APP_URL = 'https://bseu-api.appspot.com'
 HEADERS = {'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; rv:11.0) Gecko/20100101 Firefox/11.0'}
 
-BSEU_SCHEDULE_URL = 'http://bseu.by/schedule/'
+BSEU_SCHEDULE_URL = 'https://bseu.by/schedule/'
 BSEU_WEEK_PERIOD = 2
 BSEU_SEMESTER_PERIOD = 3
 BSEU_FACULTY_LIST = [
