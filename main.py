@@ -187,7 +187,6 @@ def _getHeaders(cookie):
 
 @app.route('/proxy')
 def ajax_proxy():
-    _fake()
     dat = {}
     args = request.args
     for field in args:
@@ -195,7 +194,7 @@ def ajax_proxy():
     result = urlfetch.fetch(url=settings.BSEU_SCHEDULE_URL,
                             payload=urllib.parse.urlencode(dat),
                             method=urlfetch.POST,
-                            headers=_getHeaders(request.cookie))
+                            headers=settings.HEADERS)
     return render_template_string(result.content.decode("utf8"))
 
 @app.route('/help')
