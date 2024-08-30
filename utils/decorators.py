@@ -152,31 +152,3 @@ def cron_only(f):
         else:
             return f(*args, **kwargs)
     return decorated_function
-
-
-def wrap_wsgi_middleware(middleware, *args, **kwargs):
-    """Wrap plain WSGI middleware.
-
-    Most WSGI middlewares called like following break the app ::
-
-        flask.wsgi_app = middleware(wsgi_app)
-
-    So we can prevent breaking it by using this wrapper ::
-
-        flask.wsgi_app = wrap_wsgi_middleware(middleware)(wsgi_app)
-    """
-    def wrapper(wsgi):
-        @functools.wraps(wsgi)
-        def wsgi_wrapper(environ, start_response):
-            return wsgi(environ, start_response)
-
-        # Create concrete middleware
-        # SessionMiddleware(app, cookie_key=COOKIE_KEY)
-        concrete_middleware = middleware(wsgi_wrapper, *args, **kwargs)
-
-        # Wrap the middleware again
-        @functools.wraps(concrete_middleware)
-        def wrapped(environ, start_response):
-            return concrete_middleware(environ, start_response)
-        return wrapped
-    return wrapper
