@@ -16,6 +16,3 @@ handlers:
 
 - url: /css
   static_dir: static/css
-
-- url: .*
-  script: auto
