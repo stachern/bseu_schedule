@@ -17,3 +17,5 @@ certifi==2023.7.22
 gae-env==0.1.1
 
 pytz==2023.3.post1
+
+gunicorn==23.0.0

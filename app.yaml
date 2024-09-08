@@ -1,6 +1,8 @@
 runtime: python311
 app_engine_apis: true # from https://pypi.org/project/appengine-python-standard/
 
+entrypoint: gunicorn -b :$PORT -w 2 main:app
+
 handlers:
 - url: /favicon\.ico
   static_files: static/img/favicon.ico
