@@ -190,11 +190,17 @@ def ajax_proxy():
     args = request.args
     for field in args:
         dat[field] = args.get(field)
-    result = urlfetch.fetch(url=settings.BSEU_SCHEDULE_URL,
-                            payload=urllib.parse.urlencode(dat),
-                            method=urlfetch.POST,
-                            headers=settings.HEADERS)
-    return render_template_string(result.content.decode("utf8"))
+    try:
+        result = urlfetch.fetch(url=settings.BSEU_SCHEDULE_URL,
+                                payload=urllib.parse.urlencode(dat),
+                                method=urlfetch.POST,
+                                headers=settings.HEADERS)
+        return render_template_string(result.content.decode("utf8"))
+    except urlfetch.DeadlineExceededError as e:
+        # This handles the 500 error when bseu.by is down!
+        # DeadlineExceededError: "Deadline exceeded while waiting for HTTP response from URL: http://bseu.by/schedule"
+        logging.info('[ajax_proxy] {0} is currently unresponsive: {1}'.format(settings.BSEU_SCHEDULE_URL, e))
+        return {}
 
 @app.route('/help')
 def help():

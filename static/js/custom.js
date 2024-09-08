@@ -34,13 +34,18 @@ function get_schedule_options(){
 }
 
 function parser(data, item){
+    parsedData = $.parseJSON(data);
+    if (!parsedData) {
+        return null;
+    }
+
     $(item).html('<option value="" selected="selected">Загрузка..</option>');
-    $($.parseJSON(data)).each(function(){
+    $(parsedData).each(function(){
         $(item).append('<option value="'+this.value+'">'+this.text+'</option>');
-        });
+    });
     $(item).find('option[selected="selected"]').html('Выберите');
     $(item).prop("disabled", false);
-    }
+}
 
 $('#study_detail select').change(get_schedule_options);
 
