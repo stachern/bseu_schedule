@@ -1,3 +1,5 @@
+[![Code Climate Maintainability](https://codeclimate.com/github/stachern/bseu_schedule.svg)](https://codeclimate.com/github/stachern/bseu_schedule)
+
 # Schedule+
 
 A simple webapp for Google App Engine for the students of Belarus State Economic University - parses student classes schedule from university website bseu.by and creates events in Google Calendar
