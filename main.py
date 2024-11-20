@@ -133,29 +133,30 @@ def schedule():
         return render_template('html/main.html', **context)
 
 
-@app.route('/', methods=['GET', 'POST'])
+@app.get('/')
 def root():
-    if request.method == 'GET':
-        return render_template("html/main.html", **get_user_context())
+    return render_template("html/main.html", **get_user_context())
 
-    else:
-        """This handles pretty much all the changes"""
-        user = users.get_current_user()
-        if user:
-            create_or_update_student(user, request)
-            # return render_template("html/main.html", **get_user_context())
-            return redirect('/')  # update user's schedule on form submit
-        else:
-            try:
-                #user is anonymous
-                form = request.form
-                key = add_permalink_and_get_key(form=form.get('form', type=int),
-                                                course=form.get('course', type=int),
-                                                group=form.get('group', type=int),
-                                                faculty=form.get('faculty', type=int))
-                return redirect('/link/' + key)
-            except ValueError:
-                return redirect('/')
+@app.post('/')
+def find_or_update_current_user_schedule():
+    user = users.get_current_user()
+    if user:
+        # Update current user's schedule on form submit
+        create_or_update_student(user, request)
+        # return render_template("html/main.html", **get_user_context())
+        return redirect('/')
+
+    # Find a schedule
+    try:
+        #user is anonymous
+        form = request.form
+        key = add_permalink_and_get_key(form=form.get('form', type=int),
+                                        course=form.get('course', type=int),
+                                        group=form.get('group', type=int),
+                                        faculty=form.get('faculty', type=int))
+        return redirect('/link/' + key)
+    except ValueError:
+        return redirect('/')
 
 
 @app.route('/edit')
