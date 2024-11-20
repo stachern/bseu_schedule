@@ -31,6 +31,11 @@ def show(raw_html_schedule):
     return MAIN_TABLE_PATTERN.findall(raw_html_schedule.decode('cp1251'))[0]
 
 
+def _seconds_since_midnight(time):
+    hours, minutes = time.split(u':')
+    return timedelta(hours=int(hours), minutes=int(minutes))
+
+
 def read(raw_html_schedule):
     """
     parses html and returns a well-formed list of dicts
@@ -70,8 +75,8 @@ def read(raw_html_schedule):
                 schedule_class['subject'] = tds[1].text.rstrip(u' (') # u'Международная инвестиционная деятельность' or u'Иностранный язык (1-й)'
 
                 class_start, class_end = tds[0].text.split(u'-') # u'16:05-17:25' => [u'16:05', u'17:25']
-                start_time_seconds = timedelta(hours=int(class_start.split(u':')[0]), minutes=int(class_start.split(u':')[1]))
-                end_time_seconds = timedelta(hours=int(class_end.split(u':')[0]), minutes=int(class_end.split(u':')[1]))
+                start_time_seconds = _seconds_since_midnight(class_start)
+                end_time_seconds = _seconds_since_midnight(class_end)
 
                 schedule_class['date'] = {'start': current_date + start_time_seconds, 'end': current_date + end_time_seconds}
                 schedule_class['location'] = tds[2].text if len(tds) > 2 else u''  # u'3/332' or u'' (subgroups will be added in an "else" below)
