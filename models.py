@@ -53,30 +53,30 @@ def add_permalink_and_get_key(group, faculty, form, course):
 
 
 def create_or_update_student(user, request):
-    existent = Student.all().filter("student =", user).get()
+    student = Student.all().filter("student =", user).get()
     form = request.form
-    if existent:
-        if form.get('group'):
-            existent.group = form.get('group', type=int)
-        if form.get('form'):
-            existent.form = form.get('form', type=int)
-        if form.get('faculty'):
-            existent.faculty = form.get('faculty', type=int)
-        if form.get('course'):
-            existent.course = form.get('course', type=int)
-        current_calendar_name = form.get('calendar_name', default=False)
-        current_calendar_id = form.get('calendar', default=False)
-        if current_calendar_name and current_calendar_id:
-            existent.calendar_id = current_calendar_id
-            existent.calendar = current_calendar_name
-            existent.auto = form.get('auto', default=False, type=bool)
-        existent.put()
-    else:
-        Student(group=form.get('group', type=int),
-                form=form.get('form', type=int),
-                auto=form.get('mode', type=bool),
-                faculty=form.get('faculty', type=int),
-                course=form.get('course', type=int),
-                student=user,
-                calendar_id=form.get('calendar'),
-                calendar=form.get('calendar_name')).put()
+    if not student:
+        return Student(group=form.get('group', type=int),
+                       form=form.get('form', type=int),
+                       auto=form.get('auto', type=bool),
+                       faculty=form.get('faculty', type=int),
+                       course=form.get('course', type=int),
+                       student=user,
+                       calendar_id=form.get('calendar'),
+                       calendar=form.get('calendar_name')).put()
+
+    if form.get('group'):
+        student.group = form.get('group', type=int)
+    if form.get('form'):
+        student.form = form.get('form', type=int)
+    if form.get('faculty'):
+        student.faculty = form.get('faculty', type=int)
+    if form.get('course'):
+        student.course = form.get('course', type=int)
+    current_calendar_name = form.get('calendar_name', default=False)
+    current_calendar_id = form.get('calendar', default=False)
+    if current_calendar_name and current_calendar_id:
+        student.calendar_id = current_calendar_id
+        student.calendar = current_calendar_name
+        student.auto = form.get('auto', default=False, type=bool)
+    student.put()
