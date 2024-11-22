@@ -4,7 +4,7 @@
             <legend>Google-календарь</legend>
             <label>Календарь</label>
             <select id="calendar" name="calendar" >
-                <option value="-1">Выберите кадендарь</option>
+                <option value="-1">Выберите календарь</option>
                 {% for cal in calendar.picker %}
                     <option value="{{ cal.id }}" {% if cal.id == student.calendar_id %}selected="selected" {% endif %}>{{ cal.title }}</option>
                 {% endfor %}
