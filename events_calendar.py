@@ -22,16 +22,16 @@ DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S.000Z'
 
 import_handlers = Blueprint('import_handlers', __name__)
 
-
-def insert_event(calendar_service, title='bseu-api event',
-                      description='study hard', location='in space',
-                      start_time=None, end_time=None, user_calendar='primary'):
+def insert_event(calendar_service, schedule_event, user_calendar='primary'):
     event = {}
-    event['summary'] = title
-    event['description'] = description
-    event['location'] = location
+    event['summary'] = schedule_event.title or 'bseu-api event'
+    event['description'] = schedule_event.description or 'study hard'
+    event['location'] = schedule_event.location or 'in space'
 
-    # start_time: datetime.datetime(2023, 9, 25, 16, 5)
+    start_time = schedule_event.starttime
+    end_time = schedule_event.endtime
+
+    # start_time: datetime.datetime(2023, 9, 25, 16, 5) | None
     if start_time is None:
         # Use current time for the start_time and have the event last 1 hour
         start_time = time.strftime(DATETIME_FORMAT, time.gmtime())
@@ -52,7 +52,7 @@ def insert_event(calendar_service, title='bseu-api event',
         # _flash(u'Не удалось импортировать расписание.')
         abort(403) # assume it's a 403 for now, abort on 1st failed insert
     else:
-        logging.debug('import was successful: %s-%s' % (title, description))
+        logging.debug('import was successful: %s-%s' % (event['summary'], event['description']))
 
 
 def create_calendar_events(user, credentials, event_list):
@@ -66,8 +66,7 @@ def create_calendar_events(user, credentials, event_list):
     # and then use that object to make authorized API requests.
     calendar_service = build('calendar', 'v3', credentials=credentials, cache_discovery=False)
     for event in event_list:
-        insert_event(calendar_service, event.title, event.description, event.location, event.starttime, event.endtime,
-                        user.calendar_id)
+        insert_event(calendar_service, event, user.calendar_id)
 
 
 @import_handlers.route('/import')
