@@ -19,7 +19,6 @@ from models import add_permalink_and_get_key, create_or_update_student
 import settings
 from markupsafe import escape
 from utils import mailer, bseu_schedule
-from utils.ae_helpers import ae_save
 
 # Import handlers defined in the corresponding Blueprints
 from auth import auth_handlers
@@ -74,20 +73,6 @@ def get_user_context():
     student = Student.all().filter("student =", users.get_current_user()).order("-lastrun").get()
 
     if student:
-        # Store user's access and refresh tokens in the App Engine datastore.
-        # FYI: TEMPORARY SOLUTION!
-        # TODO: Remove once all users' refresh and access tokens are in the datastore!
-        user_id = student.student.user_id()
-        if 'credentials' in session:
-            refresh_token = session['credentials'].get('refresh_token')
-            if refresh_token is not None:
-                refresh_token_key = 'refresh_token_%s' % user_id
-                ae_save(refresh_token, refresh_token_key)
-            access_token = session['credentials'].get('token')
-            if access_token is not None:
-                access_token_key = 'access_token_%s' % user_id
-                ae_save(access_token, access_token_key)
-
         context['student'] = student
         context['link_key'] = add_permalink_and_get_key(student.group,
                                                         student.faculty,
