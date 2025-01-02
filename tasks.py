@@ -61,20 +61,22 @@ def cleanup_inactive_students_and_links():
         _delete_inactive(link, outdated_links_count)
     logging.debug("[cleanup] deleted %s outdated links" % outdated_links_count['value'])
 
+def _cleanup_sessions():
+    while not delete_expired_sessions():
+        pass
+
 @task_handlers.route('/task/cleanup')
 @admin_required
 def cleanup():
     cleanup_inactive_students_and_links()
-    while not delete_expired_sessions():
-        pass
+    _cleanup_sessions()
     return render_template_string('success')
 
 @task_handlers.route('/task/maintenance')
 @admin_required
 def maintenance():
     increment_course_and_cleanup_graduates()
-    while not delete_expired_sessions():
-        pass
+    _cleanup_sessions()
     return render_template_string('success')
 
 @task_handlers.route('/task/create_events')
