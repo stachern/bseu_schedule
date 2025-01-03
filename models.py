@@ -52,18 +52,22 @@ def add_permalink_and_get_key(group, faculty, form, course):
         return link.id
 
 
+def _create_student(user, form):
+    return Student(group=form.get('group', type=int),
+                   form=form.get('form', type=int),
+                   auto=form.get('auto', type=bool),
+                   faculty=form.get('faculty', type=int),
+                   course=form.get('course', type=int),
+                   student=user,
+                   calendar_id=form.get('calendar'),
+                   calendar=form.get('calendar_name')).put()
+
+
 def create_or_update_student(user, request):
     student = Student.all().filter("student =", user).get()
     form = request.form
     if not student:
-        return Student(group=form.get('group', type=int),
-                       form=form.get('form', type=int),
-                       auto=form.get('auto', type=bool),
-                       faculty=form.get('faculty', type=int),
-                       course=form.get('course', type=int),
-                       student=user,
-                       calendar_id=form.get('calendar'),
-                       calendar=form.get('calendar_name')).put()
+        return _create_student(user, form)
 
     if form.get('group'):
         student.group = form.get('group', type=int)
