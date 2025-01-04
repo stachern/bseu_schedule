@@ -1,29 +1,33 @@
+const OPTIONS = {
+    faculty: {
+        action: "__id.22.main.inpFldsA.GetForms",
+        next: "form"
+    },
+    form: {
+        action: "__id.23.main.inpFldsA.GetCourse",
+        prev: ["faculty"],
+        next: "course"
+    },
+    course: {
+        action: "__id.23.main.inpFldsA.GetGroups",
+        prev: ["faculty", "form"],
+        next: "group"
+    }
+};
 
-function get_schedule_options(){
-    if (this.id=='faculty' && this.value>0){
-        $.get("proxy", {'__act':'__id.22.main.inpFldsA.GetForms',
-                        'faculty':this.value},
-            function(data){
-                parser(data, $('select#form'));
-            });
+function get_schedule_options() {
+    if (Object.keys(OPTIONS).includes(this.id) && this.value > 0) {
+        let params = { "__act": OPTIONS[this.id]["action"] };
+        if (Object.keys(OPTIONS[this.id]).includes("prev")) {
+            let prevOptions = OPTIONS[this.id]["prev"];
+            for (let prev of prevOptions) {
+                params[prev] = $(`select#${prev}`).val();
+            }
+        }
+        params[this.id] = this.value;
+        $.get("proxy", params, data => parser(data, $(`select#${OPTIONS[this.id]["next"]}`)));
     }
-    if (this.id=='form' && this.value>0){
-        $.get("proxy", {'__act':'__id.23.main.inpFldsA.GetCourse',
-            'faculty':$('select#faculty').val(),
-            'form':this.value},
-            function(data){
-                parser(data, $('select#course'));
-            });
-    }
-    if (this.id=='course' && this.value>0){
-        $.get("proxy", {'__act':'__id.23.main.inpFldsA.GetGroups',
-                        'faculty':$('select#faculty').val(),
-                        'form':$('select#form').val(),
-                        'course':this.value},
-            function(data){
-                 parser(data, $('select#group'));
-            });
-    }
+
     if (this.id === "group" && this.value) {
         $("#study_detail").find("button")
                           .removeClass("disabled").prop("disabled", false);
