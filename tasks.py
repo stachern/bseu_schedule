@@ -13,8 +13,13 @@ from auth import get_user_credentials_from_ae_datastore
 
 task_handlers = Blueprint('task_handlers', __name__)
 
+def _is_stale(item):
+    return item.form < 10 or \
+          (item.form == 10 and item.course >= 5) or \
+          (item.form == 11 and item.course >= 6)
+
 def _increment_or_delete(item):
-    if (item.course >= 5 and item.form == 10) or (item.course >= 6 and item.form == 11) or item.form < 10:
+    if _is_stale(item):
         logging.debug("deleting: %s" % item.id)
         item.delete()
     else:
