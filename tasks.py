@@ -37,17 +37,14 @@ def increment_course_and_cleanup_graduates():
 def _delete_inactive(item, counter):
     if (
         item.group < 8063
-        or (item.faculty == 7 and item.form == 10 and item.group < 8400)
-        or (item.faculty == 8 and ((item.form == 10 and item.group < 8432) or (item.form == 11 and item.group < 8110) or (item.form == 61 and item.group < 8480)))
-        or (item.faculty == 11 and ((item.form == 10 and item.group < 8450) or (item.form == 11 and item.group < 8115) or (item.form == 61 and item.group < 8460)))
-        or (item.faculty == 12 and item.form == 10 and item.group < 8380)
-        or (item.faculty == 13 and ((item.form == 10 and item.group < 8405) or (item.form == 16 and item.group < 8530) or (item.form == 61 and item.group < 8531)))
-        or (item.faculty == 14 and item.form == 10 and item.group < 8394)
-        or (item.faculty == 129 and ((item.form == 11 and item.group < 9073) or item.group == 108 or item.group == 107))
-        or (item.faculty == 534 and item.form == 10 and item.group < 8446)
+        or (item.faculty != 263 and item.form == 10 and item.course > 4)
+        or (item.faculty == 263 and item.form == 10 and item.course > 5)
+        or (item.form == 11 and (item.faculty != 129 and item.course > 5) or (item.faculty == 127 and item.course > 3))
+        or (item.form == 61 and item.course > 4)
+        or (item.faculty == 13 and item.form == 16)
+        or (item.faculty == 129 and (item.group == 108 or item.group == 107))
     ):
-        # (item.faculty == 263 and item.form == 10 and item.group < 8063) or
-        # logging.debug("deleting: %s" % item.id)
+        # (item.faculty == 263 and item.form == 10 and item.group < 8063)
         counter['value'] += 1
         item.delete()
 
