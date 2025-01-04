@@ -37,9 +37,8 @@ def increment_course_and_cleanup_graduates():
 def _delete_inactive(item, counter):
     if (
         item.group < 8063
-        or (item.faculty != 263 and item.form == 10 and item.course > 4)
-        or (item.faculty == 263 and item.form == 10 and item.course > 5)
-        or (item.form == 11 and (item.faculty != 129 and item.course > 5) or (item.faculty == 127 and item.course > 3))
+        or (item.form == 10 and ((item.faculty != 263 and item.course > 4) or (item.faculty == 263 and item.course > 5)))
+        or (item.form == 11 and ((item.faculty != 129 and item.course > 5) or (item.faculty == 127 and item.course > 3)))
         or (item.form == 61 and item.course > 4)
         or (item.faculty == 13 and item.form == 16)
         or (item.faculty == 129 and (item.group == 108 or item.group == 107))
