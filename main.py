@@ -5,11 +5,11 @@
 #
 import os
 
-import urllib
-from http import cookies
+from urllib.parse import urlencode
 import logging
 
-from google.appengine.api import urlfetch, users, wrap_wsgi_app
+from google.appengine.api import users, wrap_wsgi_app
+import requests
 
 from flask import Flask, render_template, render_template_string, request, redirect
 
@@ -151,25 +151,6 @@ def edit_page():
     return render_template("html/main.html", **context)
 
 
-# ajax_proxy related
-def _fake():
-    request.headers = settings.HEADERS
-    request.cookie = cookies.SimpleCookie()
-    result = urlfetch.fetch(url=settings.BSEU_SCHEDULE_URL,
-                            method=urlfetch.GET,
-                            headers=request.headers)
-    request.cookie.load(result.headers.get('set-cookie', ''))
-
-def _makeCookieHeader(cookie):
-    cookieHeader = ""
-    for value in list(cookie.values()):
-        cookieHeader += "%s=%s; " % (value.key, value.value)
-    return cookieHeader
-
-def _getHeaders(cookie):
-    request.headers['Cookie'] = _makeCookieHeader(cookie)
-    return request.headers
-
 @app.route('/proxy')
 def ajax_proxy():
     dat = {}
@@ -177,15 +158,15 @@ def ajax_proxy():
     for field in args:
         dat[field] = args.get(field)
     try:
-        result = urlfetch.fetch(url=settings.BSEU_SCHEDULE_URL,
-                                payload=urllib.parse.urlencode(dat),
-                                method=urlfetch.POST,
-                                headers=settings.HEADERS)
-        return render_template_string(result.content.decode("utf8"))
-    except urlfetch.DeadlineExceededError as e:
+        result = requests.post(settings.BSEU_SCHEDULE_URL,
+                               data=urlencode(dat),
+                               headers=settings.HEADERS)
+        result.raise_for_status()
+        return render_template_string(result.content.decode("utf-8"))
+    except requests.exceptions.Timeout as e:
         # This handles the 500 error when bseu.by is down!
-        # DeadlineExceededError: "Deadline exceeded while waiting for HTTP response from URL: http://bseu.by/schedule"
-        logging.info('[ajax_proxy] {0} is currently unresponsive: {1}'.format(settings.BSEU_SCHEDULE_URL, e))
+        url = settings.BSEU_SCHEDULE_URL
+        logging.exception(f"[ajax_proxy] {url} is currently unresponsive: {e}")
         return {}
 
 @app.route('/help')

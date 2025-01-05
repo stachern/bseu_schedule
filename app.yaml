@@ -3,6 +3,9 @@ app_engine_apis: true # from https://pypi.org/project/appengine-python-standard/
 
 entrypoint: gunicorn -b :$PORT -w 2 main:app
 
+env_variables:
+  GAE_USE_SOCKETS_HTTPLIB: "true"
+
 handlers:
 - url: /favicon\.ico
   static_files: static/img/favicon.ico

@@ -1,9 +1,9 @@
-import urllib
+from urllib.parse import urlencode
 from datetime import datetime, timedelta
 from pytz import timezone
 import logging
 
-from google.appengine.api import urlfetch
+import requests
 from flask import render_template
 from models import Event
 import settings
@@ -37,10 +37,9 @@ def _fetch_raw_html_schedule(faculty, course, group, form, period=settings.BSEU_
         'form': form
     }
 
-    return urlfetch.fetch(url=settings.BSEU_SCHEDULE_URL,
-                          payload=urllib.parse.urlencode(data),
-                          method=urlfetch.POST,
-                          headers=settings.HEADERS).content
+    return requests.post(settings.BSEU_SCHEDULE_URL,
+                         data=urlencode(data),
+                         headers=settings.HEADERS).content
 
 
 def _fetch_and_show_period(student, period):
@@ -51,11 +50,11 @@ def _fetch_and_show_period(student, period):
         ).replace('id="sched"', 'class="table table-bordered table-hover"')
     except IndexError:
         return render_template('html/misc/no_schedule_alert.html')
-    except urlfetch.DeadlineExceededError as e:
+    except requests.exceptions.Timeout as e:
         # This handles the 500 error when bseu.by is down!
-        # DeadlineExceededError: "Deadline exceeded while waiting for HTTP response from URL: http://bseu.by/schedule"
         caller_fn = 'fetch_and_show_week' if period == settings.BSEU_WEEK_PERIOD else 'fetch_and_show_semester'
-        logging.info(f'[{caller_fn}] {settings.BSEU_SCHEDULE_URL} is currently unresponsive: {e}')
+        url = settings.BSEU_SCHEDULE_URL
+        logging.exception(f'[{caller_fn}] {url} is currently unresponsive: {e}')
         return render_template('html/misc/schedule_down_alert.html')
 
 
