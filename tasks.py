@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template_string
+from flask import Blueprint, render_template, render_template_string
 
 import logging
 from gaesessions import delete_expired_sessions
@@ -68,6 +68,7 @@ def create_events():
             else:
                 if event_list:
                     create_calendar_events(user, credentials, event_list)
+                    params={'user': user.student, 'calendar': user.calendar, 'events': event_list}
                     mailer.send(recipient=user.student.email(),
-                                params={'user': user.student, 'calendar': user.calendar, 'events': event_list})
+                                message=render_template('email/notification.html', **params))
     return render_template_string('success')
