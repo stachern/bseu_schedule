@@ -13,10 +13,18 @@ from auth import get_user_credentials_from_ae_datastore
 
 task_handlers = Blueprint('task_handlers', __name__)
 
+def _is_stale_fulltime(item):
+    return item.form == 10 and \
+         ((item.faculty != 263 and item.course > 4) or (item.faculty == 263 and item.course > 5))
+
+def _is_stale_parttime(item):
+    return item.form == 11 and \
+         ((item.faculty != 129 and item.course > 5) or (item.faculty == 127 and item.course > 3))
+
 def _is_stale(item):
-    return item.form < 10 or \
-          (item.form == 10 and item.course >= 5) or \
-          (item.form == 11 and item.course >= 6)
+    return _is_stale_fulltime(item) or \
+           _is_stale_parttime(item) or \
+           (item.form == 61 and item.course > 4)
 
 def _increment_or_delete(item):
     if _is_stale(item):
@@ -34,44 +42,9 @@ def increment_course_and_cleanup_graduates():
     for link in PermanentLinks.all().run():
         _increment_or_delete(link)
 
-def _delete_inactive(item, counter):
-    if (
-        item.group < 8063
-        or (item.form == 10 and ((item.faculty != 263 and item.course > 4) or (item.faculty == 263 and item.course > 5)))
-        or (item.form == 11 and ((item.faculty != 129 and item.course > 5) or (item.faculty == 127 and item.course > 3)))
-        or (item.form == 61 and item.course > 4)
-        or (item.faculty == 13 and item.form == 16)
-        or (item.faculty == 129 and (item.group == 108 or item.group == 107))
-    ):
-        # (item.faculty == 263 and item.form == 10 and item.group < 8063)
-        counter['value'] += 1
-        item.delete()
-
-def cleanup_inactive_students_and_links():
-    logging.debug("[cleanup] started")
-
-    logging.debug("[cleanup] checking to see inactive students")
-    inactive_students_count = {'value': 0}
-    for student in Student.all().run():
-        _delete_inactive(student, inactive_students_count)
-    logging.debug("[cleanup] deleted %s inactive students" % inactive_students_count['value'])
-
-    logging.debug("[cleanup] checking to see outdated links")
-    outdated_links_count = {'value': 0}
-    for link in PermanentLinks.all().run():
-        _delete_inactive(link, outdated_links_count)
-    logging.debug("[cleanup] deleted %s outdated links" % outdated_links_count['value'])
-
 def _cleanup_sessions():
     while not delete_expired_sessions():
         pass
-
-@task_handlers.route('/task/cleanup')
-@admin_required
-def cleanup():
-    cleanup_inactive_students_and_links()
-    _cleanup_sessions()
-    return render_template_string('success')
 
 @task_handlers.route('/task/maintenance')
 @admin_required
