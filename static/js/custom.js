@@ -37,9 +37,13 @@ function get_schedule_options() {
     }
 }
 
+function redirect_to(path) {
+    window.location.href = path;
+}
+
 function parser(data, item){
     if (data["error"] === "bseu_down") {
-        return window.location.href = "/";
+        return redirect_to("/");
     }
 
     parsedData = $.parseJSON(data);
@@ -78,6 +82,7 @@ $('#feedback_modal button.btn-primary').click(function(){
         $.post("comment", $('form#feedback_form').serialize(), function(){
             $('#feedback_modal').modal('hide');
             $('textarea#comment').val("");
+            redirect_to(window.location.pathname);
         });
     } else {
         $('#feedback_form').addClass('error');
