@@ -163,7 +163,7 @@ def ajax_proxy():
                                headers=settings.HEADERS)
         result.raise_for_status()
         return render_template_string(result.content.decode("utf-8"))
-    except requests.exceptions.Timeout as e:
+    except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
         # This handles the 500 error when bseu.by is down!
         url = settings.BSEU_SCHEDULE_URL
         logging.exception(f"[ajax_proxy] {url} is currently unresponsive: {e}")
