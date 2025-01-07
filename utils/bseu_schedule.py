@@ -50,7 +50,7 @@ def _fetch_and_show_period(student, period):
         ).replace('id="sched"', 'class="table table-bordered table-hover"')
     except IndexError:
         return render_template('html/misc/no_schedule_alert.html')
-    except requests.exceptions.Timeout as e:
+    except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
         # This handles the 500 error when bseu.by is down!
         caller_fn = 'fetch_and_show_week' if period == settings.BSEU_WEEK_PERIOD else 'fetch_and_show_semester'
         url = settings.BSEU_SCHEDULE_URL
