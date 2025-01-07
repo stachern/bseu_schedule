@@ -38,6 +38,10 @@ function get_schedule_options() {
 }
 
 function parser(data, item){
+    if (data["error"] === "bseu_down") {
+        return window.location.href = "/";
+    }
+
     parsedData = $.parseJSON(data);
     if (!parsedData) {
         return null;

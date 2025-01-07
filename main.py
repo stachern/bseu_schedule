@@ -19,6 +19,7 @@ from models import add_permalink_and_get_key, create_or_update_student
 import settings
 from markupsafe import escape
 from utils import mailer, bseu_schedule
+from utils.helpers import _flash
 
 # Import handlers defined in the corresponding Blueprints
 from auth import auth_handlers
@@ -167,7 +168,8 @@ def ajax_proxy():
         # This handles the 500 error when bseu.by is down!
         url = settings.BSEU_SCHEDULE_URL
         logging.exception(f"[ajax_proxy] {url} is currently unresponsive: {e}")
-        return {}
+        _flash(u"Сайт расписания БГЭУ перегружен или недоступен, попробуйте позже.")
+        return {"error": "bseu_down"}
 
 @app.route('/help')
 def help():
