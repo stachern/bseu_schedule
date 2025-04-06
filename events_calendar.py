@@ -17,6 +17,7 @@ from flask import Blueprint, redirect, abort
 from models import Student
 
 from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 
 DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S.000Z'
 
@@ -55,16 +56,31 @@ def insert_event(calendar_service, schedule_event, user_calendar='primary'):
         logging.debug('import was successful: %s-%s' % (event['summary'], event['description']))
 
 
-def create_calendar_events(user, credentials, event_list):
+def build_calendar_service(user, credentials):
     if credentials is None:
-        logging.info('[create_calendar_events] no credentials provided for user %s - skipping' % user.student.email())
+        logging.info(f'[build_calendar_service] no credentials provided for user {user.student.email()} - skipping')
         return
 
     # https://developers.google.com/identity/protocols/oauth2/web-server#callinganapi
     # After obtaining an access token, your application can use that token to authorize API requests on behalf of a given user account.
     # Use the user-specific authorization credentials to build a service object for the API that you want to call,
     # and then use that object to make authorized API requests.
-    calendar_service = build('calendar', 'v3', credentials=credentials, cache_discovery=False)
+    return build('calendar', 'v3', credentials=credentials, cache_discovery=False)
+
+
+def check_calendar_exists(calendar_service, user_calendar):
+    try:
+        # Attempt to retrieve the calendar's metadata
+        calendar_service.calendarList().get(calendarId=user_calendar).execute()
+        return True
+    except HttpError as e:
+        if e.resp.status == 404:
+            return False
+        else:
+            raise e
+
+
+def create_calendar_events(user, calendar_service, event_list):
     for event in event_list:
         insert_event(calendar_service, event, user.calendar_id)
 
@@ -74,6 +90,13 @@ def create_calendar_events(user, credentials, event_list):
 def import_events():
     user = Student.all().filter("student =", users.get_current_user()).order("-lastrun").get()
     credentials = get_user_credentials_from_session(user)
-    create_calendar_events(user, credentials, fetch_and_parse_week(user))
+
+    calendar_service = build_calendar_service(user, credentials)
+    if not check_calendar_exists(calendar_service, user.calendar_id):
+        logging.error(f'import was unsuccessful: non-existing calendar_id for user {user.student.email()}')
+        _flash(u'Не удалось импортировать расписание. Выбранный календарь не найден!')
+        return redirect('/')
+
+    create_calendar_events(user, calendar_service, fetch_and_parse_week(user))
     _flash(u'Расписание успешно добавлено в календарь!')
     return redirect('/')
