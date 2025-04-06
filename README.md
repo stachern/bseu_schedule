@@ -11,7 +11,7 @@ The resource is located at [bseu-api.appspot.com](https://bseu-api.appspot.com/)
 ## Used stuff:
 
 * Google App Engine Gen 2 with [legacy bundled services](https://pypi.org/project/appengine-python-standard/)
-* Python 3.12.8
+* Python 3.12.x
 * Flask framework
 * lxml
 * leaf as lxml wrapper
@@ -65,6 +65,12 @@ More on Python virtual environments:
 Use `dev_appserver.py` from Google Cloud SDK to run the app locally, e.g.:
 
     python3 /usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/bin/dev_appserver.py --application=bseu-api --env_var APPLICATION_ID=dev~bseu-api app.yaml
+
+OR
+
+    python3 /opt/homebrew/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/bin/dev_appserver.py --application=bseu-api --env_var APPLICATION_ID=dev~bseu-api app.yaml
+
+if using an Apple Silicon (arm64) mac.
 
 NOTE the `--env_var APPLICATION_ID=dev~bseu-api` param – this is necessary to open the `Datastore Viewer` located on admin server at http://localhost:8000/datastore.
 
