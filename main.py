@@ -11,6 +11,7 @@ import logging
 from google.appengine.api import users, wrap_wsgi_app
 import requests
 
+import sentry_sdk
 from flask import Flask, render_template, render_template_string, request, redirect
 
 from gaesessions import get_current_session
@@ -29,6 +30,18 @@ from tasks import task_handlers
 from gaesessions import SessionMiddleware
 
 COOKIE_KEY = 'oib23b234,mnasd[f898yhk4jblafiuhd2jk341m2n3vb'
+
+sentry_sdk.init(
+    dsn="https://0839de4eaa5bc10f87c3665c5849e5ee@o4504465012031488.ingest.us.sentry.io/4509117376823296",
+
+    # Set traces_sample_rate to 1.0 to capture 100% of transactions for Tracing.
+    # Adjust this value in production
+    traces_sample_rate=1.0,
+
+    # Add data like request headers and IP for users,
+    # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
+    send_default_pii=True,
+)
 
 app = Flask(__name__)
 app.wsgi_app = SessionMiddleware(app.wsgi_app, cookie_key=COOKIE_KEY)

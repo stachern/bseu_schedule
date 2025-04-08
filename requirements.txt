@@ -6,6 +6,7 @@ git+https://github.com/dskecse/gae-sessions.git@python3-compat#egg=gaesessions
 appengine-python-standard>=1.0.0
 
 Flask==3.0.0
+sentry-sdk[flask]>=2.25.1
 
 google-api-python-client==2.111.0
 google-auth>=2.25.2
