@@ -57,16 +57,8 @@ def insert_event(calendar_service, schedule_event, user_calendar='primary'):
 
 
 def build_calendar_service(user, credentials):
-    if credentials is None:
-        logging.info(f'[build_calendar_service] no credentials provided for user {user.student.email()} - skipping')
-        return
-
-    logging.debug(f'credentials for user {user.student.email()}: {credentials}')
-    logging.debug(credentials.token is None)
-    logging.debug(credentials.refresh_token is None)
-    logging.debug(credentials.token_uri is None)
-    logging.debug(credentials.client_id is None)
-    logging.debug(credentials.client_secret is None)
+    if credentials.refresh_token is None:
+        logging.info(f'no credentials.refresh_token for user {user.student.email()}')
 
     # https://developers.google.com/identity/protocols/oauth2/web-server#callinganapi
     # After obtaining an access token, your application can use that token to authorize API requests on behalf of a given user account.

@@ -109,7 +109,7 @@ def oauth2_callback():
         credentials, session.get('credentials', {}).get('refresh_token'))
 
     # Store user's access and refresh tokens in the App Engine datastore.
-    refresh_token = credentials.refresh_token
+    refresh_token = session['credentials'].get('refresh_token')
     if refresh_token is not None:
         refresh_token_key = 'refresh_token_%s' % current_user.user_id()
         ae_save(refresh_token, refresh_token_key)
