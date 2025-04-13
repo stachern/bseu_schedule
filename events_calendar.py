@@ -61,6 +61,13 @@ def build_calendar_service(user, credentials):
         logging.info(f'[build_calendar_service] no credentials provided for user {user.student.email()} - skipping')
         return
 
+    logging.debug(f'credentials for user {user.student.email()}: {credentials}')
+    logging.debug(credentials.token is None)
+    logging.debug(credentials.refresh_token is None)
+    logging.debug(credentials.token_uri is None)
+    logging.debug(credentials.client_id is None)
+    logging.debug(credentials.client_secret is None)
+
     # https://developers.google.com/identity/protocols/oauth2/web-server#callinganapi
     # After obtaining an access token, your application can use that token to authorize API requests on behalf of a given user account.
     # Use the user-specific authorization credentials to build a service object for the API that you want to call,
