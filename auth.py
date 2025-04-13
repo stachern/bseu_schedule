@@ -175,22 +175,11 @@ def revoke_credentials():
 
 
 def get_user_credentials_from_session(user):
-    logging.debug('[get_user_credentials_from_session] debugging started')
     session = get_current_session()
-    logging.debug(f'session for user {user.student.user_id()}')
-    logging.debug('state' in session)
-    logging.debug('credentials' in session)
-    logging.debug('token' in session.get('credentials'))
-    logging.debug('refresh_token' in session.get('credentials'))
-    logging.debug('token_uri' in session.get('credentials'))
-    logging.debug('client_id' in session.get('credentials'))
-    logging.debug('client_secret' in session.get('credentials'))
-    logging.debug('scopes' in session.get('credentials'))
 
     if not 'credentials' in session:
-        return redirect('/auth')
-
-    logging.debug('[get_user_credentials_from_session] debugging ended')
+        logging.info(f'[get_user_credentials_from_session] no credentials for user {user.student.email()}')
+        return
 
     # https://developers.google.com/identity/protocols/oauth2/web-server#example
     # Load user credentials from the session stored in App Engine datastore

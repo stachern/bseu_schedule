@@ -90,6 +90,10 @@ def create_calendar_events(user, calendar_service, event_list):
 def import_events():
     user = Student.all().filter("student =", users.get_current_user()).order("-lastrun").get()
     credentials = get_user_credentials_from_session(user)
+    if not credentials:
+        # FYI: Reproducible by visiting /clear first and then /import.
+        _flash(u'Не удалось импортировать расписание. Повторите попытку еще раз')
+        return redirect('/auth')
 
     calendar_service = build_calendar_service(user, credentials)
     if not check_calendar_exists(calendar_service, user.calendar_id):
