@@ -18,6 +18,7 @@ from models import Student
 
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+from google.auth.exceptions import RefreshError
 
 DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S.000Z'
 
@@ -57,8 +58,14 @@ def insert_event(calendar_service, schedule_event, user_calendar='primary'):
 
 
 def build_calendar_service(user, credentials):
+    # Temporary user credentials debugging.
+    logging.debug(f'[build_calendar_service] user: {user.student.email()}')
+
     if credentials.refresh_token is None:
-        logging.info(f'no credentials.refresh_token for user {user.student.email()}')
+        logging.debug('[build_calendar_service] no credentials.refresh_token for user')
+
+    logging.debug(f'[build_calendar_service] credentials.expired: {credentials.expired}')
+    logging.debug(f'[build_calendar_service] credentials.valid: {credentials.valid}')
 
     # https://developers.google.com/identity/protocols/oauth2/web-server#callinganapi
     # After obtaining an access token, your application can use that token to authorize API requests on behalf of a given user account.
@@ -95,10 +102,26 @@ def import_events():
         return redirect('/auth')
 
     calendar_service = build_calendar_service(user, credentials)
-    if not check_calendar_exists(calendar_service, user.calendar_id):
-        logging.error(f'import was unsuccessful: non-existing calendar_id for user {user.student.email()}')
-        _flash(u'Не удалось импортировать расписание. Выбранный календарь не найден!')
-        return redirect('/')
+    try:
+        calendar_exists = check_calendar_exists(calendar_service, user.calendar_id)
+    except RefreshError as e:
+        # credentials.refresh_token is None
+        # URL being requested: GET https://www.googleapis.com/calendar/v3/users/me/calendarList/{calendarId}?alt=json
+        # Refreshing credentials due to a 401 response. Attempt 1/2.
+        # Exception on /import [GET]
+        # google.auth.exceptions.RefreshError: The credentials do not contain the necessary fields need to refresh the access token. You must specify refresh_token, token_uri, client_id, and client_secret.
+        #   https://google-auth.readthedocs.io/en/stable/reference/google.oauth2.credentials.html#google.oauth2.credentials.Credentials.refresh
+        # Credentials object expired?
+        #   https://google-auth.readthedocs.io/en/stable/reference/google.oauth2.credentials.html#google.oauth2.credentials.Credentials.expired
+        #   https://google-auth.readthedocs.io/en/stable/reference/google.oauth2.credentials.html#google.oauth2.credentials.Credentials.valid
+        logging.error(f'import was unsuccessful: credentials could not be refreshed for user {user.student.email()}')
+        _flash(u'Не удалось импортировать расписание. Повторите попытку еще раз')
+        return redirect('/auth')
+    else:
+        if not calendar_exists:
+            logging.error(f'import was unsuccessful: non-existing calendar_id for user {user.student.email()}')
+            _flash(u'Не удалось импортировать расписание. Выбранный календарь не найден!')
+            return redirect('/')
 
     create_calendar_events(user, calendar_service, fetch_and_parse_week(user))
     _flash(u'Расписание успешно добавлено в календарь!')

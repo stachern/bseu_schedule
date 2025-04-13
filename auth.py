@@ -113,6 +113,8 @@ def oauth2_callback():
     if refresh_token is not None:
         refresh_token_key = 'refresh_token_%s' % current_user.user_id()
         ae_save(refresh_token, refresh_token_key)
+    else:
+        logging.debug('[oauth2_callback] refresh_token is None')
 
     access_token = credentials.token
     access_token_key = 'access_token_%s' % current_user.user_id()
