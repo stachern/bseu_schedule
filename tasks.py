@@ -1,17 +1,12 @@
-from flask import Blueprint, render_template, render_template_string
+from flask import Blueprint, render_template_string
 
 import logging
 from gaesessions import delete_expired_sessions
 
 from models import Student, PermanentLinks
 
-from utils import mailer, bseu_schedule
 from utils.decorators import admin_required, cron_only
-from events_calendar import build_calendar_service, check_calendar_exists, create_calendar_events
-
-from auth import get_user_credentials_from_ae_datastore
-
-from google.auth.exceptions import RefreshError
+from events_calendar import create_calendar_events_for_users_with_auto_import
 
 task_handlers = Blueprint('task_handlers', __name__)
 
@@ -55,45 +50,15 @@ def maintenance():
     _cleanup_sessions()
     return render_template_string('success')
 
+# TODO: Come up with a better name, e.g.:
+# * create_events_for_users()
+# * create_events_weekly()
+# * auto_import_weekly_events()
+# * weekly_auto_import()?
+# * auto_import_calendar_events_weekly()?
 @task_handlers.route('/task/create_events')
 @cron_only
 def create_events():
     logging.info('starting batch insert job')
-    users = Student.all().filter("auto =", True).order("-lastrun").fetch(limit=1000)
-    for user in users:
-        credentials = get_user_credentials_from_ae_datastore(user)
-        if user.calendar_id is None or credentials is None:
-            logging.error(f'skipping: no calendar_id or credentials for user {user.student.email()}')
-            continue
-
-        calendar_service = build_calendar_service(user, credentials)
-        try:
-            calendar_exists = check_calendar_exists(calendar_service, user.calendar_id)
-        except RefreshError as e:
-            # credentials.refresh_token is None
-            # URL being requested: GET https://www.googleapis.com/calendar/v3/users/me/calendarList/{calendarId}?alt=json
-            # Refreshing credentials due to a 401 response. Attempt 1/2.
-            # Exception on /import [GET]
-            # google.auth.exceptions.RefreshError: The credentials do not contain the necessary fields need to refresh the access token. You must specify refresh_token, token_uri, client_id, and client_secret.
-            #   https://google-auth.readthedocs.io/en/stable/reference/google.oauth2.credentials.html#google.oauth2.credentials.Credentials.refresh
-            # Credentials object expired?
-            #   https://google-auth.readthedocs.io/en/stable/reference/google.oauth2.credentials.html#google.oauth2.credentials.Credentials.expired
-            #   https://google-auth.readthedocs.io/en/stable/reference/google.oauth2.credentials.html#google.oauth2.credentials.Credentials.valid
-            logging.error(f'import was unsuccessful: credentials could not be refreshed for user {user.student.email()}')
-            continue
-        else:
-            if not calendar_exists:
-                logging.error(f'skipping: non-existing calendar_id for user {user.student.email()}')
-                continue
-
-        try:
-            event_list = bseu_schedule.fetch_and_parse_week(user)
-        except Exception as e:
-            logging.error(e)
-        else:
-            if event_list:
-                create_calendar_events(user, calendar_service, event_list)
-                params={'user': user.student, 'calendar': user.calendar, 'events': event_list}
-                mailer.send(recipient=user.student.email(),
-                            message=render_template('email/notification.html', **params))
+    create_calendar_events_for_users_with_auto_import()
     return render_template_string('success')
