@@ -11,6 +11,8 @@ from events_calendar import build_calendar_service, check_calendar_exists, creat
 
 from auth import get_user_credentials_from_ae_datastore
 
+from google.auth.exceptions import RefreshError
+
 task_handlers = Blueprint('task_handlers', __name__)
 
 def _is_stale_fulltime(item):
@@ -65,9 +67,24 @@ def create_events():
             continue
 
         calendar_service = build_calendar_service(user, credentials)
-        if not check_calendar_exists(calendar_service, user.calendar_id):
-            logging.error(f'skipping: non-existing calendar_id for user {user.student.email()}')
+        try:
+            calendar_exists = check_calendar_exists(calendar_service, user.calendar_id)
+        except RefreshError as e:
+            # credentials.refresh_token is None
+            # URL being requested: GET https://www.googleapis.com/calendar/v3/users/me/calendarList/{calendarId}?alt=json
+            # Refreshing credentials due to a 401 response. Attempt 1/2.
+            # Exception on /import [GET]
+            # google.auth.exceptions.RefreshError: The credentials do not contain the necessary fields need to refresh the access token. You must specify refresh_token, token_uri, client_id, and client_secret.
+            #   https://google-auth.readthedocs.io/en/stable/reference/google.oauth2.credentials.html#google.oauth2.credentials.Credentials.refresh
+            # Credentials object expired?
+            #   https://google-auth.readthedocs.io/en/stable/reference/google.oauth2.credentials.html#google.oauth2.credentials.Credentials.expired
+            #   https://google-auth.readthedocs.io/en/stable/reference/google.oauth2.credentials.html#google.oauth2.credentials.Credentials.valid
+            logging.error(f'import was unsuccessful: credentials could not be refreshed for user {user.student.email()}')
             continue
+        else:
+            if not calendar_exists:
+                logging.error(f'skipping: non-existing calendar_id for user {user.student.email()}')
+                continue
 
         try:
             event_list = bseu_schedule.fetch_and_parse_week(user)
