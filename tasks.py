@@ -72,8 +72,7 @@ def test_task_handler():
     data = request.get_json()
     user_id = data['user_id']
 
-    users = Student.all().filter("auto =", True).order("-lastrun").fetch(limit=1000)
-    user = next((user for user in users if user.id == user_id), None)
+    user = Student.get_by_id(user_id)
     if not user:
         return f'User {user_id} not found', 404
 
@@ -92,20 +91,20 @@ def test_task():
     queue = 'test-queue'
     parent = client.queue_path(project_id, location, queue)
 
-    users = [{'id': 1, 'email': 'user1@example.com'}]
-
     url = f'{APP_URL}/test-task-handler'
 
+    users = Student.all().filter("auto =", True).order("-lastrun").fetch(limit=1000)
     for user in users:
+        user_id = user.key().id()
         task = {
             'http_request': {
                 'http_method': tasks_v2.HttpMethod.POST,
                 'url': url,
                 'headers': {'Content-type': 'application/json'},
-                'body': json.dumps({'user_id': user['id']}).encode()
+                'body': json.dumps({'user_id': user_id}).encode() # e.g. ID: 5629499534213120
             }
         }
         response = client.create_task(parent=parent, task=task)
-        logging.info(f'Created task {response.name} for user {user["id"]}')
+        logging.info(f'Created task {response.name} for user {user_id}')
 
     return 'Tasks enqueued', 200
