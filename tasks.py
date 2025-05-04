@@ -1,11 +1,14 @@
-from flask import Blueprint, render_template_string
+from flask import Blueprint, render_template_string, request
 
+import json
 import logging
 from gaesessions import delete_expired_sessions
+from google.cloud import tasks_v2
 
 from models import Student, PermanentLinks
 
 from utils.decorators import admin_required, cron_only
+from settings import APP_URL
 from events_calendar import create_calendar_events_for_users_with_auto_import
 
 task_handlers = Blueprint('task_handlers', __name__)
@@ -62,3 +65,47 @@ def create_events():
     logging.info('starting batch insert job')
     create_calendar_events_for_users_with_auto_import()
     return render_template_string('success')
+
+
+@task_handlers.post('/test-task-handler')
+def test_task_handler():
+    data = request.get_json()
+    user_id = data['user_id']
+
+    users = Student.all().filter("auto =", True).order("-lastrun").fetch(limit=1000)
+    user = next((user for user in users if user.id == user_id), None)
+    if not user:
+        return f'User {user_id} not found', 404
+
+    logging.info(f'Processing user {user_id}: {user.student.email()}')
+
+    return f'Processed user {user_id}', 200
+
+
+@task_handlers.route('/task/test')
+@admin_required
+def test_task():
+    client = tasks_v2.CloudTasksClient()
+
+    project_id = 'bseu-api'
+    location = 'us-central1'
+    queue = 'test-queue'
+    parent = client.queue_path(project_id, location, queue)
+
+    users = [{'id': 1, 'email': 'user1@example.com'}]
+
+    url = f'{APP_URL}/test-task-handler'
+
+    for user in users:
+        task = {
+            'http_request': {
+                'http_method': tasks_v2.HttpMethod.POST,
+                'url': url,
+                'headers': {'Content-type': 'application/json'},
+                'body': json.dumps({'user_id': user['id']}).encode()
+            }
+        }
+        response = client.create_task(parent=parent, task=task)
+        logging.info(f'Created task {response.name} for user {user["id"]}')
+
+    return 'Tasks enqueued', 200
