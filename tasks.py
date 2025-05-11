@@ -1,12 +1,17 @@
-from flask import Blueprint, render_template_string
+from flask import Blueprint, render_template_string, request
 
+import json
 import logging
 from gaesessions import delete_expired_sessions
+from google.cloud import tasks_v2
 
 from models import Student, PermanentLinks
 
 from utils.decorators import admin_required, cron_only
-from events_calendar import create_calendar_events_for_users_with_auto_import
+
+from settings import APP_URL, AUTO_IMPORT_QUEUE, LOCATION, PROJECT_ID
+
+AUTO_IMPORT_HANDLER_URL = f'{APP_URL}/auto-import'
 
 task_handlers = Blueprint('task_handlers', __name__)
 
@@ -50,15 +55,30 @@ def maintenance():
     _cleanup_sessions()
     return render_template_string('success')
 
-# TODO: Come up with a better name, e.g.:
-# * create_events_for_users()
-# * create_events_weekly()
-# * auto_import_weekly_events()
-# * weekly_auto_import()?
-# * auto_import_calendar_events_weekly()?
-@task_handlers.route('/task/create_events')
+@task_handlers.route('/task/enqueue-auto-import-tasks')
 @cron_only
-def create_events():
-    logging.info('starting batch insert job')
-    create_calendar_events_for_users_with_auto_import()
-    return render_template_string('success')
+def enqueue_auto_import_tasks():
+    """This cron job enqueues a separate Cloud Tasks task on the AUTO_IMPORT_QUEUE queue
+    for each student with auto import enabled, and each task is then handled by the
+    `/auto-import` route."""
+
+    logging.info('Starting enqueueing auto import tasks')
+
+    cloud_tasks_client = tasks_v2.CloudTasksClient()
+    parent = cloud_tasks_client.queue_path(PROJECT_ID, LOCATION, AUTO_IMPORT_QUEUE)
+
+    users = Student.all().filter("auto =", True).order("-lastrun").fetch(limit=1000)
+    for user in users:
+        user_id = user.key().id()
+        task = {
+            'http_request': {
+                'http_method': tasks_v2.HttpMethod.POST,
+                'url': AUTO_IMPORT_HANDLER_URL,
+                'headers': {'Content-type': 'application/json'},
+                'body': json.dumps({'user_id': user_id}).encode() # e.g. ID: 5629499534213120
+            }
+        }
+        response = cloud_tasks_client.create_task(parent=parent, task=task)
+        logging.info(f'Created task {response.name} for user {user_id}')
+
+    return 'Tasks enqueued', 200

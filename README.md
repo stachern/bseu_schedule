@@ -13,6 +13,7 @@ The resource is located at [bseu-api.appspot.com](https://bseu-api.appspot.com/)
 * Google App Engine Gen 2 with [legacy bundled services](https://pypi.org/project/appengine-python-standard/)
 * Python 3.12.x
 * Flask framework
+* Cloud Tasks
 * lxml
 * leaf as lxml wrapper
 * twitter bootstrap for responsive UI

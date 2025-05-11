@@ -1,5 +1,5 @@
 cron:
 - description: weekly import
-  url: /task/create_events
+  url: /task/enqueue-auto-import-tasks
   schedule: every sunday 11:00
   timezone: Europe/Minsk

@@ -3,6 +3,10 @@
 
 APP_URL = 'https://bseu-api.appspot.com'
 
+AUTO_IMPORT_QUEUE = 'create-events-auto-import'
+LOCATION = 'us-central1'
+PROJECT_ID = 'bseu-api'
+
 HEADERS = {'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; rv:11.0) Gecko/20100101 Firefox/11.0'}
 
