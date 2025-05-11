@@ -141,12 +141,12 @@ def auto_import_calendar_events():
 
     if user.calendar_id is None:
         logging.error(f'skipping: no calendar_id for user {user.student.email()}')
-        return
+        return f'calendar_id for user {user_id} not found', 404
 
     credentials = get_user_credentials_from_ae_datastore(user)
     if credentials is None:
         logging.error(f'skipping: no credentials for user {user.student.email()}')
-        return
+        return f'Credentials for user {user_id} not found', 403
 
     calendar_service = build_calendar_service(user, credentials)
     try:
@@ -162,19 +162,22 @@ def auto_import_calendar_events():
         #   https://google-auth.readthedocs.io/en/stable/reference/google.oauth2.credentials.html#google.oauth2.credentials.Credentials.expired
         #   https://google-auth.readthedocs.io/en/stable/reference/google.oauth2.credentials.html#google.oauth2.credentials.Credentials.valid
         logging.error(f'import was unsuccessful: credentials could not be refreshed for user {user.student.email()}')
-        return
+        return f'Credentials for user {user_id} could not be refreshed', 403
     else:
         if not calendar_exists:
             logging.error(f'skipping: non-existing calendar_id for user {user.student.email()}')
-            return
+            return f'calendar_id {user.calendar_id} for user {user_id} does not exist', 404
 
     try:
         event_list = fetch_and_parse_week(user)
     except Exception as e:
         logging.error(e)
+        return 'Unexpected error while fetching and parsing schedule', 500
     else:
         if event_list:
             create_calendar_events(user, calendar_service, event_list)
             params={'user': user.student, 'calendar': user.calendar, 'events': event_list}
             mailer.send(recipient=user.student.email(),
                         message=render_template('email/notification.html', **params))
+
+    return f'Auto import for user {user_id} completed successfully', 200
