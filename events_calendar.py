@@ -178,6 +178,8 @@ def auto_import_calendar_events():
 
     try:
         event_list = fetch_and_parse_week(user)
+    except IndexError:
+        return f'Schedule not found for user {user_id}', 404
     except Exception as e:
         logging.error(e)
         return 'Unexpected error while fetching and parsing schedule', 500
