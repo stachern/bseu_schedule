@@ -125,8 +125,16 @@ def import_events():
             _flash(u'Не удалось импортировать расписание. Выбранный календарь не найден!')
             return redirect('/')
 
-    create_calendar_events(user, calendar_service, fetch_and_parse_week(user))
-    _flash(u'Расписание успешно добавлено в календарь!')
+    try:
+        event_list = fetch_and_parse_week(user)
+    except IndexError:
+        _flash(u'Не удалось импортировать расписание. Расписание не найдено')
+    except Exception as e:
+        logging.error(e)
+    else:
+        create_calendar_events(user, calendar_service, event_list)
+        _flash(u'Расписание успешно добавлено в календарь!')
+
     return redirect('/')
 
 
