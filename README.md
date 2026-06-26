@@ -1,4 +1,4 @@
-[![Code Climate Maintainability](https://codeclimate.com/github/stachern/bseu_schedule.svg)](https://codeclimate.com/github/stachern/bseu_schedule)
+[![Maintainability](https://qlty.sh/gh/stachern/projects/bseu_schedule/maintainability.svg)](https://qlty.sh/gh/stachern/projects/bseu_schedule)
 
 # Schedule+
 
