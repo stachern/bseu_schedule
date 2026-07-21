@@ -14,10 +14,8 @@ BSEU_SCHEDULE_URL = 'https://bseu.by/schedule/'
 BSEU_WEEK_PERIOD = 2
 BSEU_SEMESTER_PERIOD = 3
 BSEU_FACULTY_LIST = [
-    ("450", u"Аспир."),
     ("18", u"ВШУБ"),
     ("531", u"ИПК и ПЭК (в)"),
-    ("497", u"ИПК и ПЭК (о)"),
     ("129", u"Магистр."),
     ("432", u"СЭФ"),
     ("12", u"УЭФ"),
