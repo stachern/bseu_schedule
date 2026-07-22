@@ -3,7 +3,7 @@ from flask import Blueprint, render_template_string, request
 import json
 import logging
 from gaesessions import delete_expired_sessions
-from google.cloud import tasks_v2, datastore
+from google.cloud import tasks_v2
 
 from models import Student, PermanentLinks
 
@@ -82,13 +82,3 @@ def enqueue_auto_import_tasks():
         logging.info(f'Created task {response.name} for user {user_id}')
 
     return 'Tasks enqueued', 200
-
-@task_handlers.route('/task/cleanup_stale')
-@admin_required
-def cleanup_stale():
-    client = datastore.Client(project=PROJECT_ID)
-    stale_ids = [4906414937997312, 5634121111961600, 5648411743223808, 5651059053690880, 5659188353040384, 5673119415009280, 5689382879100928, 5691102308859904, 5692025055739904, 5705860957339648, 5711879380926464, 5724142183645184, 5732086564519936, 5740714449174528, 5759529593602048, 5762110734729216, 5766570454286336, 6208330926129152, 6212804885348352, 6219705958268928, 6228587145330688, 6250639520694272, 6255242047913984, 6266840997167104, 6282937674760192, 6284286080581632, 6297171800358912, 6321488093249536, 6196526959296512]
-    keys_to_delete = [client.key('Student', id) for id in stale_ids]
-    client.delete_multi(keys_to_delete)
-
-    return render_template_string('success')
