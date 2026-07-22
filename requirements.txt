@@ -21,3 +21,6 @@ gae-env==0.1.1
 pytz==2023.3.post1
 
 gunicorn==23.0.0
+
+# temporary for datastore cleanup task
+google-cloud-datastore==2.26.0

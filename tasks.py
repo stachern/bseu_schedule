@@ -3,7 +3,7 @@ from flask import Blueprint, render_template_string, request
 import json
 import logging
 from gaesessions import delete_expired_sessions
-from google.cloud import tasks_v2
+from google.cloud import tasks_v2, datastore
 
 from models import Student, PermanentLinks
 
@@ -82,3 +82,13 @@ def enqueue_auto_import_tasks():
         logging.info(f'Created task {response.name} for user {user_id}')
 
     return 'Tasks enqueued', 200
+
+@task_handlers.route('/task/cleanup_stale')
+@admin_required
+def cleanup_stale():
+    client = datastore.Client(project=PROJECT_ID)
+    ids = [4906414937997312]
+    keys = [client.key('Student', id) for id in ids]
+    entities = client.get_multi(keys)
+
+    return render_template_string('success')
