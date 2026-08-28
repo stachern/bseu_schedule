@@ -196,10 +196,13 @@ def comment():
 
 @app.route('/link/<key>')
 def resolve_link(key):
-    """This is basically to keep old links valid"""
-    student = PermanentLinks.get(escape(key))
+    link = PermanentLinks.get(escape(key))
+    if link is None:
+        _flash(u"Ваша ссылка недействительна или ведет на устаревшее расписание, которое более недоступно.")
+        return redirect('/')
+
     return redirect('/schedule?%s' % (settings.SCHEDULE_VIEW_ARGS % (
-        student.faculty, student.group, student.course, student.form
+        link.faculty, link.group, link.course, link.form
     )))
 
 @app.route('/privacy')
