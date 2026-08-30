@@ -14,6 +14,7 @@ The resource is located at [bseu-api.appspot.com](https://bseu-api.appspot.com/)
 * Python 3.12.x
 * Flask framework
 * Cloud Tasks
+* Secret Manager
 * lxml
 * leaf as lxml wrapper
 * twitter bootstrap for responsive UI
@@ -90,6 +91,11 @@ To set them:
 * head over to the [`Datastore Viewer`](http://localhost:8000/datastore)
 * find already created corresponding `GaeEnvSettings` records
 * and replace their values with those for the only OAuth 2.0 Client ID on the [project's Google Cloud Credentials page](https://console.cloud.google.com/apis/credentials?project=bseu-api)
+
+Other secrets like `COOKIE_KEY` and `SENTRY_DSN` are fetched from:
+
+* [Google Cloud Secret Manager](https://console.cloud.google.com/security/secret-manager/secrets?project=bseu-api) in `production` environment
+* environment variables with a fallback to default values (if provided) in development.
 
 ### Debugging
 

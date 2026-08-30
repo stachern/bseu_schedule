@@ -8,6 +8,8 @@ import os
 from urllib.parse import urlencode
 import logging
 
+from secrets_loader import get_secret_or_env
+
 from google.appengine.api import users, wrap_wsgi_app
 import requests
 
@@ -29,19 +31,27 @@ from tasks import task_handlers
 
 from gaesessions import SessionMiddleware
 
-COOKIE_KEY = 'oib23b234,mnasd[f898yhk4jblafiuhd2jk341m2n3vb'
-
-sentry_sdk.init(
-    dsn="https://0839de4eaa5bc10f87c3665c5849e5ee@o4504465012031488.ingest.us.sentry.io/4509117376823296",
-
-    # Set traces_sample_rate to 1.0 to capture 100% of transactions for Tracing.
-    # Adjust this value in production
-    traces_sample_rate=1.0,
-
-    # Add data like request headers and IP for users,
-    # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
-    send_default_pii=True,
+# Fall back to default value in development.
+COOKIE_KEY = get_secret_or_env(
+    'COOKIE_KEY',
+    default='90708c2ad0bf64b575703316bb9dfd498fa3a5c82a107ca0dccec13c35538b26'
 )
+
+# Encouraged to only be loaded in production.
+SENTRY_DSN = get_secret_or_env('SENTRY_DSN')
+
+if SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=sentry_dsn,
+
+        # Set traces_sample_rate to 1.0 to capture 100% of transactions for Tracing.
+        # Adjust this value in production
+        traces_sample_rate=1.0,
+
+        # Add data like request headers and IP for users,
+        # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
+        send_default_pii=True,
+    )
 
 app = Flask(__name__)
 app.wsgi_app = SessionMiddleware(app.wsgi_app, cookie_key=COOKIE_KEY)
