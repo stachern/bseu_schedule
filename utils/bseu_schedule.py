@@ -39,7 +39,9 @@ def _fetch_raw_html_schedule(faculty, course, group, form, period=settings.BSEU_
 
     return requests.post(settings.BSEU_SCHEDULE_URL,
                          data=urlencode(data),
-                         headers=settings.HEADERS).content
+                         headers=settings.HEADERS,
+                         timeout=(settings.CONNECT_TIMEOUT_SECONDS, settings.READ_TIMEOUT_SECONDS)
+                        ).content
 
 
 def _fetch_and_show_period(student, period):

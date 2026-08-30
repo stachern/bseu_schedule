@@ -174,7 +174,8 @@ def ajax_proxy():
     try:
         result = requests.post(settings.BSEU_SCHEDULE_URL,
                                data=urlencode(dat),
-                               headers=settings.HEADERS)
+                               headers=settings.HEADERS,
+                               timeout=(settings.CONNECT_TIMEOUT_SECONDS, settings.READ_TIMEOUT_SECONDS))
         result.raise_for_status()
         return render_template_string(result.content.decode("utf-8"))
     except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:

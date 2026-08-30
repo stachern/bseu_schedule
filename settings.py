@@ -29,6 +29,9 @@ BSEU_FACULTY_LIST = [
     ("11", u"ФЭМ")
 ]
 
+CONNECT_TIMEOUT_SECONDS = 5
+READ_TIMEOUT_SECONDS = 15
+
 ACTION_ID = '__id.25.main.inpFldsA.GetSchedule__sp.7.results__fp.4.main'
 
 SCHEDULE_VIEW_ARGS = 'faculty=%s&group=%s&course=%s&form=%s'
