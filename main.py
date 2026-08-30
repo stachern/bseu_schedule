@@ -42,7 +42,7 @@ SENTRY_DSN = get_secret_or_env('SENTRY_DSN')
 
 if SENTRY_DSN:
     sentry_sdk.init(
-        dsn=sentry_dsn,
+        dsn=SENTRY_DSN,
 
         # Set traces_sample_rate to 1.0 to capture 100% of transactions for Tracing.
         # Adjust this value in production
