@@ -34,11 +34,10 @@ CREDENTIALS_EXPIRED_SUBJECT = 'BSEU Schedule: reconnect Google Calendar'
 import_handlers = Blueprint('import_handlers', __name__)
 
 
-def handle_expired_credentials(user, source='auto-import'):
-    """Disable auto-import and notify the user when OAuth refresh fails."""
+def handle_expired_credentials(user, source='auto-import', reason='credentials could not be refreshed'):
+    """Disable auto-import and notify the user when OAuth credentials are unusable."""
     user_id = user.student.user_id()
-    logging.warning(
-        f"[{source}] credentials could not be refreshed for user {user_id}; disabling auto-import")
+    logging.warning(f"[{source}] {reason} for user {user_id}; disabling auto-import")
 
     if user.auto:
         user.auto = False
@@ -171,7 +170,7 @@ def auto_import_calendar_events():
 
     credentials = get_user_credentials_from_ae_datastore(user)
     if credentials is None:
-        logging.error(f'skipping: no credentials for user {user.student.email()}')
+        handle_expired_credentials(user, source='auto-import', reason='no credentials in datastore')
         return f'Credentials for user {user_id} not found', 403
 
     calendar_service = build_calendar_service(user, credentials)

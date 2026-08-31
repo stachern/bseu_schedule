@@ -76,6 +76,20 @@ class TestHandleExpiredCredentials(GAETestCase):
         delete_user_tokens.assert_called_once_with('user-123')
         mailer_send.assert_called_once()
 
+    @mock.patch('events_calendar.render_template', return_value='email body')
+    @mock.patch('events_calendar.mailer.send')
+    @mock.patch('events_calendar.delete_user_tokens')
+    def test_accepts_custom_reason(self, delete_user_tokens, mailer_send, render_template):
+        with self.assertLogs('root', level='WARNING') as logs:
+            handle_expired_credentials(
+                self.user,
+                source='auto-import',
+                reason='no credentials in datastore')
+
+        self.assertTrue(any('no credentials in datastore' in message for message in logs.output))
+        delete_user_tokens.assert_called_once_with('user-123')
+        mailer_send.assert_called_once()
+
     @mock.patch('events_calendar.mailer.send')
     @mock.patch('events_calendar.render_template', return_value='email body')
     @mock.patch('auth.ae_delete')
