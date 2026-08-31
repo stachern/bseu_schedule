@@ -4,7 +4,7 @@ from unittest import TestCase, mock
 from google.appengine.ext import testbed
 
 import auth
-from events_calendar import handle_expired_credentials
+from events_calendar import handle_expired_credentials, handle_missing_calendar
 
 
 class GAETestCase(TestCase):
@@ -106,3 +106,42 @@ class TestHandleExpiredCredentials(GAETestCase):
 
         ae_load.return_value = None
         self.assertFalse(auth.user_has_stored_refresh_token('user-123'))
+
+
+class TestHandleMissingCalendar(GAETestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.user = mock.Mock()
+        self.user.auto = True
+        self.user.calendar_id = 'cal-123'
+        self.user.calendar = 'My Calendar'
+        self.user.student.user_id.return_value = 'user-123'
+        self.user.student.email.return_value = 'student@example.com'
+
+    @mock.patch('events_calendar.render_template', return_value='email body')
+    @mock.patch('events_calendar.mailer.send')
+    def test_disables_auto_import_clears_calendar_and_notifies_user(self, mailer_send, render_template):
+        handle_missing_calendar(self.user, source='auto-import')
+
+        self.assertFalse(self.user.auto)
+        self.assertIsNone(self.user.calendar_id)
+        self.assertIsNone(self.user.calendar)
+        self.user.put.assert_called_once_with()
+        render_template.assert_called_once_with(
+            'email/calendar_not_found.html',
+            user=self.user.student,
+            calendar='My Calendar')
+        mailer_send.assert_called_once_with(
+            recipient='student@example.com',
+            subject='BSEU Schedule: calendar not found',
+            message='email body')
+
+    @mock.patch('events_calendar.render_template', return_value='email body')
+    @mock.patch('events_calendar.mailer.send')
+    def test_does_not_delete_oauth_tokens(self, mailer_send, render_template):
+        with mock.patch('events_calendar.delete_user_tokens') as delete_user_tokens:
+            handle_missing_calendar(self.user, source='auto-import')
+
+        delete_user_tokens.assert_not_called()
+        mailer_send.assert_called_once()

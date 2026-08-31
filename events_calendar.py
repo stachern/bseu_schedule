@@ -30,6 +30,7 @@ from google.auth.exceptions import RefreshError
 DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S.000Z'
 
 CREDENTIALS_EXPIRED_SUBJECT = 'BSEU Schedule: reconnect Google Calendar'
+CALENDAR_NOT_FOUND_SUBJECT = 'BSEU Schedule: Google Calendar not found'
 
 import_handlers = Blueprint('import_handlers', __name__)
 
@@ -49,6 +50,26 @@ def handle_expired_credentials(user, source='auto-import', reason='credentials c
         recipient=user.student.email(),
         subject=CREDENTIALS_EXPIRED_SUBJECT,
         message=render_template('email/credentials_expired.html', user=user.student))
+
+
+def handle_missing_calendar(user, source='auto-import', reason='Google Calendar not found'):
+    """Disable auto-import and notify the user when the selected calendar is gone."""
+    user_id = user.student.user_id()
+    calendar_name = user.calendar
+    logging.warning(f"[{source}] {reason} for user {user_id}; disabling auto-import")
+
+    user.auto = False
+    user.calendar_id = None
+    user.calendar = None
+    user.put()
+
+    mailer.send(
+        recipient=user.student.email(),
+        subject=CALENDAR_NOT_FOUND_SUBJECT,
+        message=render_template(
+            'email/calendar_not_found.html',
+            user=user.student,
+            calendar=calendar_name))
 
 
 def insert_event(calendar_service, schedule_event, user_calendar='primary'):
@@ -138,7 +159,7 @@ def import_events():
         return redirect('/auth')
     else:
         if not calendar_exists:
-            logging.error(f'import was unsuccessful: non-existing calendar_id for user {user.student.email()}')
+            logging.warning(f'import was unsuccessful: non-existing calendar_id for user {user.student.email()}')
             _flash(u'Не удалось импортировать расписание. Выбранный календарь не найден!')
             return redirect('/')
 
@@ -165,7 +186,7 @@ def auto_import_calendar_events():
         return f'User {user_id} not found', 404
 
     if user.calendar_id is None:
-        logging.error(f'skipping: no calendar_id for user {user.student.email()}')
+        handle_missing_calendar(user, source='auto-import', reason='no calendar_id configured')
         return f'calendar_id for user {user_id} not found', 404
 
     credentials = get_user_credentials_from_ae_datastore(user)
@@ -182,8 +203,9 @@ def auto_import_calendar_events():
         return f'Credentials for user {user_id} could not be refreshed', 403
     else:
         if not calendar_exists:
-            logging.error(f'skipping: non-existing calendar_id for user {user.student.email()}')
-            return f'calendar_id {user.calendar_id} for user {user_id} does not exist', 404
+            calendar_id = user.calendar_id
+            handle_missing_calendar(user, source='auto-import', reason='Google Calendar not found')
+            return f'calendar_id {calendar_id} for user {user_id} does not exist', 404
 
     try:
         event_list = fetch_and_parse_week(user)
