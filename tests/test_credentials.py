@@ -134,7 +134,7 @@ class TestHandleMissingCalendar(GAETestCase):
             calendar='My Calendar')
         mailer_send.assert_called_once_with(
             recipient='student@example.com',
-            subject='BSEU Schedule: calendar not found',
+            subject='BSEU Schedule: Google Calendar not found',
             message='email body')
 
     @mock.patch('events_calendar.render_template', return_value='email body')

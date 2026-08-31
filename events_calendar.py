@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from datetime import timedelta, time
+from datetime import timedelta
 import logging
+import time
 
 from google.appengine.ext import db
 from google.appengine.api import users
@@ -19,7 +20,7 @@ from auth import (
     delete_user_tokens,
 )
 
-from flask import Blueprint, render_template, redirect, request, abort
+from flask import Blueprint, render_template, redirect, request
 
 from models import Student
 
@@ -28,6 +29,9 @@ from googleapiclient.errors import HttpError
 from google.auth.exceptions import RefreshError
 
 DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S.000Z'
+MAX_INSERT_RETRIES = 3
+INSERT_RETRY_SECONDS = 1
+INSERT_DELAY_SECONDS = 0.25
 
 CREDENTIALS_EXPIRED_SUBJECT = 'BSEU Schedule: reconnect Google Calendar'
 CALENDAR_NOT_FOUND_SUBJECT = 'BSEU Schedule: Google Calendar not found'
@@ -72,6 +76,17 @@ def handle_missing_calendar(user, source='auto-import', reason='Google Calendar 
             calendar=calendar_name))
 
 
+def _is_rate_limit_error(error):
+    if not isinstance(error, HttpError):
+        return False
+    if error.resp.status == 429:
+        return True
+    if error.resp.status == 403:
+        content = error.content.decode('utf-8') if error.content else str(error)
+        return 'rateLimitExceeded' in content or 'userRateLimitExceeded' in content
+    return False
+
+
 def insert_event(calendar_service, schedule_event, user_calendar='primary'):
     event = {}
     event['summary'] = schedule_event.title or 'bseu-api event'
@@ -94,15 +109,24 @@ def insert_event(calendar_service, schedule_event, user_calendar='primary'):
     event['start'] = {'dateTime': start_time}
     event['end'] = {'dateTime': end_time}
 
-    try:
-        # Events#insert API ref: https://developers.google.com/calendar/api/v3/reference/events/insert
-        calendar_service.events().insert(calendarId=user_calendar, body=event).execute()
-    except Exception as e:
-        logging.error('import was unsuccessful - skipping: %s' % e)
-        # _flash(u'Не удалось импортировать расписание.')
-        abort(403) # assume it's a 403 for now, abort on 1st failed insert
-    else:
-        logging.debug('import was successful: %s-%s' % (event['summary'], event['description']))
+    for attempt in range(MAX_INSERT_RETRIES + 1):
+        try:
+            # Events#insert API ref: https://developers.google.com/calendar/api/v3/reference/events/insert
+            calendar_service.events().insert(calendarId=user_calendar, body=event).execute()
+        except HttpError as e:
+            if _is_rate_limit_error(e) and attempt < MAX_INSERT_RETRIES:
+                time.sleep(INSERT_RETRY_SECONDS * (2 ** attempt))
+                continue
+            logging.warning(f"import was unsuccessful - skipping event: {e}")
+            return False
+        except Exception as e:
+            logging.warning(f"import was unsuccessful - skipping event: {e}")
+            return False
+        else:
+            logging.debug(f"import was successful: {event['summary']}-{event['description']}")
+            return True
+
+    return False
 
 
 def build_calendar_service(user, credentials):
@@ -135,8 +159,11 @@ def check_calendar_exists(calendar_service, user_calendar):
 
 
 def create_calendar_events(user, calendar_service, event_list):
-    for event in event_list:
-        insert_event(calendar_service, event, user.calendar_id)
+    for index, event in enumerate(event_list):
+        if not insert_event(calendar_service, event, user.calendar_id):
+            break
+        if index + 1 < len(event_list):
+            time.sleep(INSERT_DELAY_SECONDS)
 
 
 @import_handlers.route('/import')
