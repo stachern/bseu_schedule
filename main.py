@@ -216,6 +216,10 @@ def resolve_link(key):
         link.faculty, link.group, link.course, link.form
     )))
 
+@app.get('/health')
+def health():
+    return 'ok', 200
+
 @app.route('/privacy')
 def privacy():
     return render_template('html/privacy.html', **get_user_context())
