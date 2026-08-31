@@ -56,7 +56,7 @@ def _fetch_and_show_period(student, period):
         # This handles the 500 error when bseu.by is down!
         caller_fn = 'fetch_and_show_week' if period == settings.BSEU_WEEK_PERIOD else 'fetch_and_show_semester'
         url = settings.BSEU_SCHEDULE_URL
-        logging.exception(f'[{caller_fn}] {url} is currently unresponsive: {e}')
+        logging.warning(f'[{caller_fn}] {url} is currently unresponsive: {e}')
         return render_template('html/misc/schedule_down_alert.html')
 
 

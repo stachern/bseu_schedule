@@ -191,7 +191,7 @@ def ajax_proxy():
     except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
         # This handles the 500 error when bseu.by is down!
         url = settings.BSEU_SCHEDULE_URL
-        logging.exception(f"[ajax_proxy] {url} is currently unresponsive: {e}")
+        logging.warning(f"[ajax_proxy] {url} is currently unresponsive: {e}")
         _flash(u"Сайт расписания БГЭУ перегружен или недоступен, попробуйте позже.")
         return {"error": "bseu_down"}
 
