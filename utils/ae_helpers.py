@@ -152,3 +152,11 @@ def ae_load(token_key):
         return _token_from_blob(token_string)
     else:
         return None
+
+
+def ae_delete(token_key):
+    """Removes a token from memcache and the App Engine datastore."""
+    memcache.delete(token_key)
+    token = Token.get_by_key_name(token_key)
+    if token is not None:
+        token.delete()

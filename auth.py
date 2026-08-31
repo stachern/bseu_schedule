@@ -20,7 +20,7 @@ from oauthlib.oauth2.rfc6749.errors import MissingCodeError
 
 from utils.decorators import login_required
 from utils.helpers import _flash
-from utils.ae_helpers import ae_save, ae_load
+from utils.ae_helpers import ae_save, ae_load, ae_delete
 
 from settings import OAUTH2_CONFIG, OAUTH2_SCOPES
 
@@ -28,6 +28,34 @@ from settings import OAUTH2_CONFIG, OAUTH2_SCOPES
 auth_handlers = Blueprint('auth_handlers', __name__)
 
 logging.getLogger().setLevel(logging.DEBUG)
+
+
+def _token_keys(user_id):
+    return f"access_token_{user_id}", f"refresh_token_{user_id}"
+
+
+def user_has_stored_refresh_token(user_id):
+    _, refresh_token_key = _token_keys(user_id)
+    return ae_load(refresh_token_key) is not None
+
+
+def save_user_tokens(user_id, access_token, refresh_token=None):
+    access_token_key, refresh_token_key = _token_keys(user_id)
+    if access_token is not None:
+        ae_save(access_token, access_token_key)
+    if refresh_token is not None:
+        ae_save(refresh_token, refresh_token_key)
+
+
+def persist_refreshed_access_token(user, credentials):
+    if credentials.token:
+        save_user_tokens(user.student.user_id(), credentials.token)
+
+
+def delete_user_tokens(user_id):
+    access_token_key, refresh_token_key = _token_keys(user_id)
+    ae_delete(access_token_key)
+    ae_delete(refresh_token_key)
 
 
 @auth_handlers.route('/auth')
@@ -48,12 +76,19 @@ def authorize():
     flow.redirect_uri = url_for('auth_handlers.oauth2_callback', _external=True)
 
     # Generate URL for request to Google's OAuth 2.0 server.
-    authorization_url, state = flow.authorization_url(
+    auth_kwargs = {
         # Enable offline access so that you can refresh an access token without
         # re-prompting the user for permission. Recommended for web server apps.
-        access_type='offline',
+        'access_type': 'offline',
         # Enable incremental authorization. Recommended as a best practice.
-        include_granted_scopes='true')
+        'include_granted_scopes': 'true',
+    }
+    # Google only returns a refresh_token when the user sees the consent screen.
+    # Force consent when auto-import has no stored refresh token to re-establish.
+    if not user_has_stored_refresh_token(users.get_current_user().user_id()):
+        auth_kwargs['prompt'] = 'consent'
+
+    authorization_url, state = flow.authorization_url(**auth_kwargs)
 
     # Store the state so the callback can verify the auth server response.
     session = get_current_session()
@@ -110,15 +145,11 @@ def oauth2_callback():
 
     # Store user's access and refresh tokens in the App Engine datastore.
     refresh_token = session['credentials'].get('refresh_token')
-    if refresh_token is not None:
-        refresh_token_key = 'refresh_token_%s' % current_user.user_id()
-        ae_save(refresh_token, refresh_token_key)
-    else:
+    if refresh_token is None:
         logging.debug('[oauth2_callback] refresh_token is None')
 
     access_token = credentials.token
-    access_token_key = 'access_token_%s' % current_user.user_id()
-    ae_save(access_token, access_token_key)
+    save_user_tokens(current_user.user_id(), access_token, refresh_token)
 
     try:
         calendar_service = build('calendar', 'v3', credentials=credentials, cache_discovery=False)
@@ -189,13 +220,8 @@ def get_user_credentials_from_session(user):
 
 def get_user_credentials_from_ae_datastore(user):
     user_id = user.student.user_id()
-    access_token_key = 'access_token_%s' % user_id
+    access_token_key, refresh_token_key = _token_keys(user_id)
     access_token = ae_load(access_token_key)
-    if access_token is None:
-        logging.info('[get_user_credentials_from_ae_datastore] no access token for user %s - skipping' % user_id)
-        return
-
-    refresh_token_key = 'refresh_token_%s' % user_id
     refresh_token = ae_load(refresh_token_key)
     if refresh_token is None:
         logging.info('[get_user_credentials_from_ae_datastore] no refresh token for user %s - skipping' % user_id)

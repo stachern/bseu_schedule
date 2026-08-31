@@ -12,7 +12,12 @@ from utils.decorators import login_required
 from utils.bseu_schedule import fetch_and_parse_week
 from utils.helpers import _flash
 
-from auth import get_user_credentials_from_session, get_user_credentials_from_ae_datastore
+from auth import (
+    get_user_credentials_from_session,
+    get_user_credentials_from_ae_datastore,
+    persist_refreshed_access_token,
+    delete_user_tokens,
+)
 
 from flask import Blueprint, render_template, redirect, request, abort
 
@@ -24,7 +29,28 @@ from google.auth.exceptions import RefreshError
 
 DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S.000Z'
 
+CREDENTIALS_EXPIRED_SUBJECT = 'BSEU Schedule: reconnect Google Calendar'
+
 import_handlers = Blueprint('import_handlers', __name__)
+
+
+def handle_expired_credentials(user, source='auto-import'):
+    """Disable auto-import and notify the user when OAuth refresh fails."""
+    user_id = user.student.user_id()
+    logging.warning(
+        f"[{source}] credentials could not be refreshed for user {user_id}; disabling auto-import")
+
+    if user.auto:
+        user.auto = False
+        user.put()
+
+    delete_user_tokens(user_id)
+
+    mailer.send(
+        recipient=user.student.email(),
+        subject=CREDENTIALS_EXPIRED_SUBJECT,
+        message=render_template('email/credentials_expired.html', user=user.student))
+
 
 def insert_event(calendar_service, schedule_event, user_calendar='primary'):
     event = {}
@@ -106,17 +132,9 @@ def import_events():
     calendar_service = build_calendar_service(user, credentials)
     try:
         calendar_exists = check_calendar_exists(calendar_service, user.calendar_id)
-    except RefreshError as e:
-        # credentials.refresh_token is None
-        # URL being requested: GET https://www.googleapis.com/calendar/v3/users/me/calendarList/{calendarId}?alt=json
-        # Refreshing credentials due to a 401 response. Attempt 1/2.
-        # Exception on /import [GET]
-        # google.auth.exceptions.RefreshError: The credentials do not contain the necessary fields need to refresh the access token. You must specify refresh_token, token_uri, client_id, and client_secret.
-        #   https://google-auth.readthedocs.io/en/stable/reference/google.oauth2.credentials.html#google.oauth2.credentials.Credentials.refresh
-        # Credentials object expired?
-        #   https://google-auth.readthedocs.io/en/stable/reference/google.oauth2.credentials.html#google.oauth2.credentials.Credentials.expired
-        #   https://google-auth.readthedocs.io/en/stable/reference/google.oauth2.credentials.html#google.oauth2.credentials.Credentials.valid
-        logging.error(f'import was unsuccessful: credentials could not be refreshed for user {user.student.email()}')
+        persist_refreshed_access_token(user, credentials)
+    except RefreshError:
+        handle_expired_credentials(user, source='manual-import')
         _flash(u'Не удалось импортировать расписание. Повторите попытку еще раз')
         return redirect('/auth')
     else:
@@ -159,17 +177,9 @@ def auto_import_calendar_events():
     calendar_service = build_calendar_service(user, credentials)
     try:
         calendar_exists = check_calendar_exists(calendar_service, user.calendar_id)
-    except RefreshError as e:
-        # credentials.refresh_token is None
-        # URL being requested: GET https://www.googleapis.com/calendar/v3/users/me/calendarList/{calendarId}?alt=json
-        # Refreshing credentials due to a 401 response. Attempt 1/2.
-        # Exception on /import [GET]
-        # google.auth.exceptions.RefreshError: The credentials do not contain the necessary fields need to refresh the access token. You must specify refresh_token, token_uri, client_id, and client_secret.
-        #   https://google-auth.readthedocs.io/en/stable/reference/google.oauth2.credentials.html#google.oauth2.credentials.Credentials.refresh
-        # Credentials object expired?
-        #   https://google-auth.readthedocs.io/en/stable/reference/google.oauth2.credentials.html#google.oauth2.credentials.Credentials.expired
-        #   https://google-auth.readthedocs.io/en/stable/reference/google.oauth2.credentials.html#google.oauth2.credentials.Credentials.valid
-        logging.error(f'import was unsuccessful: credentials could not be refreshed for user {user.student.email()}')
+        persist_refreshed_access_token(user, credentials)
+    except RefreshError:
+        handle_expired_credentials(user, source='auto-import')
         return f'Credentials for user {user_id} could not be refreshed', 403
     else:
         if not calendar_exists:
