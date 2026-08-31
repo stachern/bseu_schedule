@@ -22,7 +22,7 @@ from models import add_permalink_and_get_key, create_or_update_student
 import settings
 from markupsafe import escape
 from utils import mailer, bseu_schedule
-from utils.helpers import _flash
+from utils.helpers import _flash, is_localdev
 
 # Import handlers defined in the corresponding Blueprints
 from auth import auth_handlers
@@ -43,6 +43,7 @@ SENTRY_DSN = get_secret_or_env('SENTRY_DSN')
 if SENTRY_DSN:
     sentry_sdk.init(
         dsn=SENTRY_DSN,
+        environment='development' if is_localdev() else 'production',
 
         # Set traces_sample_rate to 1.0 to capture 100% of transactions for Tracing.
         # Adjust this value in production
