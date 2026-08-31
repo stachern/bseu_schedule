@@ -19,7 +19,7 @@ from google.oauth2.credentials import Credentials
 from oauthlib.oauth2.rfc6749.errors import MissingCodeError
 
 from utils.decorators import login_required
-from utils.helpers import _flash
+from utils.helpers import _flash, is_localdev
 from utils.ae_helpers import ae_save, ae_load, ae_delete
 
 from settings import OAUTH2_CONFIG, OAUTH2_SCOPES
@@ -114,7 +114,7 @@ def oauth2_callback():
     # When running locally, disable OAuthlib's HTTPs verification.
     # This is to get rid of the following error in development:
     #   InsecureTransportError: (insecure_transport) OAuth 2 MUST utilize https.
-    if os.environ.get('GAE_ENV') == 'localdev':
+    if is_localdev():
         os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
     session = get_current_session()

@@ -1,6 +1,8 @@
 import os
 import settings
 
+from utils.helpers import is_localdev
+
 from google.cloud import secretmanager
 
 # Cache secrets to avoid repeated API calls
@@ -26,7 +28,7 @@ def get_secret_or_env(secret_id, default=None):
     """Use Secret Manager in production, env variables locally."""
 
     # Use env variables in development
-    if os.environ.get('GAE_ENV') == 'localdev':
+    if is_localdev():
         return os.environ.get(secret_id, default)
 
     # Use Secret Manager in producction
