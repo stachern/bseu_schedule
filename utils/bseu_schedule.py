@@ -59,9 +59,10 @@ def _fetch_raw_html_schedule(faculty, course, group, form, period=settings.BSEU_
                              headers=settings.HEADERS,
                              timeout=(settings.CONNECT_TIMEOUT_SECONDS, settings.READ_TIMEOUT_SECONDS)
                             ).content
-    except (requests.exceptions.Timeout, requests.exceptions.ConnectionError):
+    except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
         mark_bseu_down()
-        raise
+        logging.warning(f'[_fetch_raw_html_schedule] {settings.BSEU_SCHEDULE_URL} is currently unresponsive: {e}')
+        raise BseuUnavailableError() from e
 
 
 def _fetch_and_show_period(student, period):
@@ -72,7 +73,7 @@ def _fetch_and_show_period(student, period):
         ).replace('id="sched"', 'class="table table-bordered table-hover"')
     except IndexError:
         return render_template('html/misc/no_schedule_alert.html')
-    except (BseuUnavailableError, requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
+    except BseuUnavailableError as e:
         # This handles the 500 error when bseu.by is down!
         caller_fn = 'fetch_and_show_week' if period == settings.BSEU_WEEK_PERIOD else 'fetch_and_show_semester'
         url = settings.BSEU_SCHEDULE_URL

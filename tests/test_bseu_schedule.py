@@ -45,7 +45,16 @@ class TestBseuDownFlag(GAETestCase):
     @mock.patch('utils.bseu_schedule.is_bseu_marked_down', return_value=False)
     @mock.patch('utils.bseu_schedule.requests.post', side_effect=requests.exceptions.ConnectTimeout())
     def test_fetch_marks_bseu_down_on_connect_timeout(self, post, _is_down, mark_down):
-        with self.assertRaises(requests.exceptions.ConnectTimeout):
+        with self.assertRaises(bseu_schedule.BseuUnavailableError):
+            bseu_schedule._fetch_raw_html_schedule.__wrapped__(1, 2, 3, 4)
+
+        mark_down.assert_called_once_with()
+
+    @mock.patch('utils.bseu_schedule.mark_bseu_down')
+    @mock.patch('utils.bseu_schedule.is_bseu_marked_down', return_value=False)
+    @mock.patch('utils.bseu_schedule.requests.post', side_effect=requests.exceptions.ReadTimeout())
+    def test_fetch_marks_bseu_down_on_read_timeout(self, post, _is_down, mark_down):
+        with self.assertRaises(bseu_schedule.BseuUnavailableError):
             bseu_schedule._fetch_raw_html_schedule.__wrapped__(1, 2, 3, 4)
 
         mark_down.assert_called_once_with()
