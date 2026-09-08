@@ -205,6 +205,9 @@ def ajax_proxy():
     args = request.args
     for field in args:
         dat[field] = args.get(field)
+    if bseu_schedule.is_bseu_marked_down():
+        _flash(u"Сайт расписания БГЭУ перегружен или недоступен, попробуйте позже.")
+        return {"error": "bseu_down"}
     try:
         result = requests.post(settings.BSEU_SCHEDULE_URL,
                                data=urlencode(dat),
@@ -214,6 +217,7 @@ def ajax_proxy():
         return render_template_string(result.content.decode("utf-8"))
     except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
         # This handles the 500 error when bseu.by is down!
+        bseu_schedule.mark_bseu_down()
         url = settings.BSEU_SCHEDULE_URL
         logging.warning(f"[ajax_proxy] {url} is currently unresponsive: {e}")
         _flash(u"Сайт расписания БГЭУ перегружен или недоступен, попробуйте позже.")

@@ -32,6 +32,9 @@ BSEU_FACULTY_LIST = [
 CONNECT_TIMEOUT_SECONDS = 5
 READ_TIMEOUT_SECONDS = 15
 
+BSEU_DOWN_KEY = 'bseu_schedule:unavailable'
+BSEU_DOWN_TTL_SECONDS = 90
+
 ACTION_ID = '__id.25.main.inpFldsA.GetSchedule__sp.7.results__fp.4.main'
 
 SCHEDULE_VIEW_ARGS = 'faculty=%s&group=%s&course=%s&form=%s'

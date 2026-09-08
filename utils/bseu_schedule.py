@@ -5,10 +5,23 @@ import logging
 
 import requests
 from flask import render_template
+from google.appengine.api import memcache
 from models import Event
 import settings
 from utils import schedule_parser
 from utils.decorators import cached
+
+
+class BseuUnavailableError(Exception):
+    pass
+
+
+def is_bseu_marked_down():
+    return memcache.get(settings.BSEU_DOWN_KEY) is not None
+
+
+def mark_bseu_down():
+    memcache.set(settings.BSEU_DOWN_KEY, True, time=settings.BSEU_DOWN_TTL_SECONDS)
 
 
 def _seconds_till_around_midnight():
@@ -37,11 +50,18 @@ def _fetch_raw_html_schedule(faculty, course, group, form, period=settings.BSEU_
         'form': form
     }
 
-    return requests.post(settings.BSEU_SCHEDULE_URL,
-                         data=urlencode(data),
-                         headers=settings.HEADERS,
-                         timeout=(settings.CONNECT_TIMEOUT_SECONDS, settings.READ_TIMEOUT_SECONDS)
-                        ).content
+    if is_bseu_marked_down():
+        raise BseuUnavailableError()
+
+    try:
+        return requests.post(settings.BSEU_SCHEDULE_URL,
+                             data=urlencode(data),
+                             headers=settings.HEADERS,
+                             timeout=(settings.CONNECT_TIMEOUT_SECONDS, settings.READ_TIMEOUT_SECONDS)
+                            ).content
+    except (requests.exceptions.Timeout, requests.exceptions.ConnectionError):
+        mark_bseu_down()
+        raise
 
 
 def _fetch_and_show_period(student, period):
@@ -52,7 +72,7 @@ def _fetch_and_show_period(student, period):
         ).replace('id="sched"', 'class="table table-bordered table-hover"')
     except IndexError:
         return render_template('html/misc/no_schedule_alert.html')
-    except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
+    except (BseuUnavailableError, requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
         # This handles the 500 error when bseu.by is down!
         caller_fn = 'fetch_and_show_week' if period == settings.BSEU_WEEK_PERIOD else 'fetch_and_show_semester'
         url = settings.BSEU_SCHEDULE_URL

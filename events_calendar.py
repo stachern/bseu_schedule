@@ -10,7 +10,7 @@ from google.appengine.api import users
 
 from utils import mailer
 from utils.decorators import login_required
-from utils.bseu_schedule import fetch_and_parse_week
+from utils.bseu_schedule import fetch_and_parse_week, BseuUnavailableError
 from utils.helpers import _flash
 
 from auth import (
@@ -192,6 +192,9 @@ def import_events():
 
     try:
         event_list = fetch_and_parse_week(user)
+    except BseuUnavailableError:
+        _flash(u'Не удалось импортировать расписание. Сайт расписания БГЭУ перегружен или недоступен, попробуйте позже')
+        return redirect('/')
     except IndexError:
         _flash(u'Не удалось импортировать расписание. Расписание не найдено')
     except Exception as e:
@@ -236,6 +239,8 @@ def auto_import_calendar_events():
 
     try:
         event_list = fetch_and_parse_week(user)
+    except BseuUnavailableError:
+        return f'bseu.by is currently unavailable', 503
     except IndexError:
         return f'Schedule not found for user {user_id}', 404
     except Exception as e:
