@@ -4,6 +4,7 @@
 # advanced bseu.by schedule parser
 #
 import os
+from types import SimpleNamespace
 
 from urllib.parse import urlencode
 import logging
@@ -86,6 +87,10 @@ def _get_common_context():
     return context
 
 
+def _schedule_query(faculty, group, course, form):
+    return settings.SCHEDULE_VIEW_ARGS % (faculty, group, course, form)
+
+
 def get_anonymous_context():
     context = _get_common_context()
     return context
@@ -104,8 +109,9 @@ def get_user_context():
                                                         student.form,
                                                         student.course)
         # replace to apply table styles
-        context['schedule'] = {'week': bseu_schedule.fetch_and_show_week(student),
-                           'semester': bseu_schedule.fetch_and_show_semester(student)}
+        context['schedule'] = {'week': bseu_schedule.fetch_and_show_week(student)}
+        context['schedule_query'] = _schedule_query(
+            student.faculty, student.group, student.course, student.form)
 
     if 'calendars' in session:
         context['calendar'] = {'picker': session['calendars']}
@@ -138,9 +144,26 @@ def schedule():
         return redirect('/')
     else:
         links = PermanentLinks.get(context['link_key'])
-        context['schedule'] = {'week': bseu_schedule.fetch_and_show_week(links),
-                                'semester': bseu_schedule.fetch_and_show_semester(links)}
+        context['schedule'] = {'week': bseu_schedule.fetch_and_show_week(links)}
+        context['schedule_query'] = _schedule_query(
+            links.faculty, links.group, links.course, links.form)
         return render_template('html/main.html', **context)
+
+
+@app.get('/schedule/semester')
+def schedule_semester():
+    try:
+        faculty = request.args.get('faculty', type=int)
+        course = request.args.get('course', type=int)
+        group = request.args.get('group', type=int)
+        form = request.args.get('form', type=int)
+        if None in (faculty, course, group, form):
+            return '', 400
+        schedule = SimpleNamespace(
+            faculty=faculty, course=course, group=group, form=form)
+    except ValueError:
+        return '', 400
+    return bseu_schedule.fetch_and_show_semester(schedule)
 
 
 @app.get('/')

@@ -10,7 +10,6 @@
     <div class="tab-pane active" id="schedule-week">
         {{ schedule.week|safe }}
     </div>
-    <div class="tab-pane" id="schedule-semester">
-        {{ schedule.semester|safe }}
+    <div class="tab-pane" id="schedule-semester" data-schedule-query="{{ schedule_query }}">
     </div>
 </div>

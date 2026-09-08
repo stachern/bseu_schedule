@@ -72,9 +72,35 @@ $('select#calendar').change(function(){
     }
 });
 
-$('#schedule-tab-bar a').click(function (e) {
+$('#schedule-tab-bar a[href="#schedule-week"]').click(function (e) {
     e.preventDefault();
     $(this).tab('show');
+});
+
+let semesterLoaded = false;
+
+function load_semester_schedule() {
+    if (semesterLoaded) {
+        return;
+    }
+
+    const pane = $('#schedule-semester');
+    const query = pane.data('schedule-query');
+    if (!query) {
+        return;
+    }
+
+    pane.html('Загрузка...');
+    $.get('schedule/semester?' + query, function (html) {
+        pane.html(html);
+        semesterLoaded = true;
+    });
+}
+
+$('#schedule-tab-bar a[href="#schedule-semester"]').click(function (e) {
+    e.preventDefault();
+    $(this).tab('show');
+    load_semester_schedule();
 });
 
 $('#feedback_modal button.btn-primary').click(function(){
