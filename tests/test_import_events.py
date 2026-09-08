@@ -87,7 +87,19 @@ class TestInsertEvent(GAETestCase):
         calendar_service = mock.Mock()
         events = [mock.Mock(), mock.Mock(), mock.Mock()]
 
-        create_calendar_events(user, calendar_service, events)
+        result = create_calendar_events(user, calendar_service, events)
 
+        self.assertFalse(result)
         self.assertEqual(insert_event_mock.call_count, 2)
-        sleep.assert_called_once()
+        sleep.assert_not_called()
+
+    @mock.patch('events_calendar.insert_event', return_value=True)
+    def test_create_calendar_events_returns_true_when_all_succeed(self, insert_event_mock):
+        user = mock.Mock(calendar_id='cal-123')
+        calendar_service = mock.Mock()
+        events = [mock.Mock(), mock.Mock()]
+
+        result = create_calendar_events(user, calendar_service, events)
+
+        self.assertTrue(result)
+        self.assertEqual(insert_event_mock.call_count, 2)

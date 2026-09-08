@@ -31,7 +31,6 @@ from google.auth.exceptions import RefreshError
 DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S.000Z'
 MAX_INSERT_RETRIES = 3
 INSERT_RETRY_SECONDS = 1
-INSERT_DELAY_SECONDS = 0.25
 
 CREDENTIALS_EXPIRED_SUBJECT = 'BSEU Schedule: reconnect Google Calendar'
 CALENDAR_NOT_FOUND_SUBJECT = 'BSEU Schedule: Google Calendar not found'
@@ -159,11 +158,11 @@ def check_calendar_exists(calendar_service, user_calendar):
 
 
 def create_calendar_events(user, calendar_service, event_list):
-    for index, event in enumerate(event_list):
+    for event in event_list:
         if not insert_event(calendar_service, event, user.calendar_id):
-            break
-        if index + 1 < len(event_list):
-            time.sleep(INSERT_DELAY_SECONDS)
+            return False
+
+    return True
 
 
 @import_handlers.route('/import')
@@ -200,8 +199,10 @@ def import_events():
     except Exception as e:
         logging.error(e)
     else:
-        create_calendar_events(user, calendar_service, event_list)
-        _flash(u'Расписание успешно добавлено в календарь!')
+        if create_calendar_events(user, calendar_service, event_list):
+            _flash(u'Расписание успешно добавлено в календарь!')
+        else:
+            _flash(u'Не удалось импортировать расписание. Повторите попытку еще раз')
 
     return redirect('/')
 
@@ -248,9 +249,11 @@ def auto_import_calendar_events():
         return 'Unexpected error while fetching and parsing schedule', 500
     else:
         if event_list:
-            create_calendar_events(user, calendar_service, event_list)
-            params={'user': user.student, 'calendar': user.calendar, 'events': event_list}
-            mailer.send(recipient=user.student.email(),
-                        message=render_template('email/notification.html', **params))
+            if create_calendar_events(user, calendar_service, event_list):
+                params={'user': user.student, 'calendar': user.calendar, 'events': event_list}
+                mailer.send(recipient=user.student.email(),
+                            message=render_template('email/notification.html', **params))
+            else:
+                return f'Calendar import failed for user {user_id}', 500
 
     return f'Auto import for user {user_id} completed successfully', 200
