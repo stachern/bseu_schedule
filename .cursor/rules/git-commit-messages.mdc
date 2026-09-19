@@ -1,0 +1,31 @@
+---
+description: Git commit message format for this repository
+alwaysApply: true
+---
+
+# Git Commit Messages
+
+When writing commit messages in this project, use this structure:
+
+1. **Subject line** — one line, active voice, **imperative present tense** (e.g. `Add`, `Update`, `Fix`, `Remove`). **Do not** end the subject with a period.
+2. **Blank line** — always after the subject line.
+3. **Body (optional)** — unordered list of changes, when helpful. Use **present simple**, not imperative (e.g. `Adds timeout handling`, `Updates ajax_proxy error path`). Include Sentry issue references here as list items (e.g. `- Fixes BSEU-API-4V`), not as a separate footer.
+
+## Example
+
+```
+Fix upstream 5xx handling when bseu.by is unavailable
+
+- Treats HTTP 5xx responses from bseu.by as temporary unavailability in ajax_proxy
+- Applies the same handling in _fetch_raw_html_schedule for schedule pages
+- Adds a test for 503 responses marking BSEU as down
+- Fixes BSEU-API-4V
+```
+
+## Do not
+
+- Use past tense in the subject (`Added`, `Fixed`)
+- End the subject line with a period (`.`)
+- Skip the blank line after the subject
+- Use imperative mood in the body list (`Add test`, `Update proxy`)
+- Put `Fixes PROJECT-ID` on a separate footer line — keep it in the body list
