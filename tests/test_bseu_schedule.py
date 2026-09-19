@@ -58,3 +58,16 @@ class TestBseuDownFlag(GAETestCase):
             bseu_schedule._fetch_raw_html_schedule.__wrapped__(1, 2, 3, 4)
 
         mark_down.assert_called_once_with()
+
+    @mock.patch('utils.bseu_schedule.mark_bseu_down')
+    @mock.patch('utils.bseu_schedule.is_bseu_marked_down', return_value=False)
+    @mock.patch('utils.bseu_schedule.requests.post')
+    def test_fetch_marks_bseu_down_on_503(self, post, _is_down, mark_down):
+        response = mock.Mock()
+        response.status_code = 503
+        post.return_value = response
+
+        with self.assertRaises(bseu_schedule.BseuUnavailableError):
+            bseu_schedule._fetch_raw_html_schedule.__wrapped__(1, 2, 3, 4)
+
+        mark_down.assert_called_once_with()

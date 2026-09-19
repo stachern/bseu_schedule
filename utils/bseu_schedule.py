@@ -54,11 +54,15 @@ def _fetch_raw_html_schedule(faculty, course, group, form, period=settings.BSEU_
         raise BseuUnavailableError()
 
     try:
-        return requests.post(settings.BSEU_SCHEDULE_URL,
-                             data=urlencode(data),
-                             headers=settings.HEADERS,
-                             timeout=(settings.CONNECT_TIMEOUT_SECONDS, settings.READ_TIMEOUT_SECONDS)
-                            ).content
+        result = requests.post(settings.BSEU_SCHEDULE_URL,
+                               data=urlencode(data),
+                               headers=settings.HEADERS,
+                               timeout=(settings.CONNECT_TIMEOUT_SECONDS, settings.READ_TIMEOUT_SECONDS))
+        if result.status_code >= 500:
+            mark_bseu_down()
+            logging.warning(f'[_fetch_raw_html_schedule] {settings.BSEU_SCHEDULE_URL} returned {result.status_code}')
+            raise BseuUnavailableError()
+        return result.content
     except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
         mark_bseu_down()
         logging.warning(f'[_fetch_raw_html_schedule] {settings.BSEU_SCHEDULE_URL} is currently unresponsive: {e}')
