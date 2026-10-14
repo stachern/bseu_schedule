@@ -213,12 +213,12 @@ def ajax_proxy():
                                data=urlencode(dat),
                                headers=settings.HEADERS,
                                timeout=(settings.CONNECT_TIMEOUT_SECONDS, settings.READ_TIMEOUT_SECONDS))
-        if result.status_code >= 500:
-            bseu_schedule.mark_bseu_down()
+        if not result.ok:
+            if result.status_code >= 500:
+                bseu_schedule.mark_bseu_down()
             logging.warning(f"[ajax_proxy] {settings.BSEU_SCHEDULE_URL} returned {result.status_code}")
             _flash(u"Сайт расписания БГЭУ перегружен или недоступен, попробуйте позже.")
             return {"error": "bseu_down"}
-        result.raise_for_status()
         return render_template_string(result.content.decode("utf-8"))
     except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
         bseu_schedule.mark_bseu_down()
