@@ -13,7 +13,7 @@ google-auth-oauthlib==1.2.0
 google-auth-httplib2==0.2.0
 google-cloud-secret-manager==2.30.0
 google-cloud-tasks==2.19.2
-requests==2.33.1
+requests==2.34.2
 certifi==2026.10.23
 
 gae-env==0.1.1
