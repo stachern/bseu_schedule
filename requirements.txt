@@ -18,6 +18,6 @@ certifi==2026.10.23
 
 gae-env==0.1.1
 
-pytz==2023.3.post1
+pytz==2026.5
 
 gunicorn==23.0.0
